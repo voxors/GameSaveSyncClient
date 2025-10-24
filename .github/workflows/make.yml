@@ -108,11 +108,18 @@ jobs:
           cp download/bin/Release/GameSaveSyncClient AppDir/usr/bin/
           cp res/GameSaveSyncClient.desktop AppDir/
           cp res/icon/GameSaveSyncClient.png AppDir/
-          wget -O linuxdeployqt-x86_64.AppImage \
-          https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-          chmod +x linuxdeployqt-x86_64.AppImage
-          ./linuxdeployqt-x86_64.AppImage AppDir/usr/bin/GameSaveSyncClient -appimage -bundle-non-qt-libs
-          echo "appimage=$(ls GameSaveSyncClient-*-x86_64.AppImage)" >> "$GITHUB_OUTPUT"
+
+          wget -O sharun-$(uname -m)-aio https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-$(uname -m)-aio
+          chmod +x sharun-$(uname -m)-aio
+          mv sharun-$(uname -m)-aio sharun
+
+          ./sharun lib4bin --with-sharun --dst-dir AppDir /usr/bin/GameSaveSyncClient
+
+          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          ./appimagetool AppDir
+
+          echo "appimage=$(ls *.AppImage)" >> "$GITHUB_OUTPUT"
       - name: Package AppImage
         if: ${{ success() }}
         uses: actions/upload-artifact@v4
