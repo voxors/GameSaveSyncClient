@@ -84,11 +84,11 @@ jobs:
           chmod +x sharun-$(uname -m)-aio
           mv sharun-$(uname -m)-aio sharun
 
-          ./sharun lib4bin --with-sharun --dst-dir AppDir /usr/bin/GameSaveSyncClient
+          ./sharun lib4bin --with-sharun --dst-dir AppDir download/bin/Release/GameSaveSyncClient
 
           wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
-          ./appimagetool AppDir
+          ARCH=x86_64 ./appimagetool AppDir
 
           echo "appimage=$(ls *.AppImage)" >> "$GITHUB_OUTPUT"
       - name: Package AppImage
