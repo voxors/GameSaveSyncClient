@@ -84,7 +84,13 @@ jobs:
 
           ./sharun lib4bin --with-sharun --dst-dir AppDir AppDir/usr/bin/GameSaveSyncClient
 
-          ln -sf sharun AppDir/AppRun
+          cat > AppDir/AppRun << 'EOF'
+          #!/bin/sh
+          SELF=$(readlink -f "$0")
+          HERE=${SELF%/*}
+          exec "${HERE}/sharun" GameSaveSyncClient "$@"
+          EOF
+          chmod +x AppDir/AppRun
 
           cp res/GameSaveSyncClient.desktop AppDir/
           cp res/icon/GameSaveSyncClient.png AppDir/
