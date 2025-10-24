@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -17,9 +17,41 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           cache: true
+      - name: Install GCC 13
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-13 g++-13
       - name: Configure CMake
         run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-13
+      - name: Build
+        run: |
+          cmake --build build --config Release
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-linux
+          path: build/
+
+  build-windows:
+    runs-on: windows-latest
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Install Qt
+        id: install-qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          cache: true
+      - name: Install GCC 13
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-13 g++-13
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-13
       - name: Build
         run: |
           cmake --build build --config Release
@@ -73,12 +105,9 @@ jobs:
         id: build-appimage
         run: |
           mkdir -p AppDir/usr/bin
-          mkdir -p AppDir/lib
-          mkdir -p AppDir/share/applications
-          mkdir -p AppDir/share/icons/hicolor/256x256/
           cp download/bin/Release/GameSaveSyncClient AppDir/usr/bin/
-          cp res/GameSaveSyncClient.desktop AppDir/share/applications
-          cp res/icon/GameSaveSyncClient.png AppDir/share/icons/hicolor/256x256/
+          cp res/GameSaveSyncClient.desktop AppDir/
+          cp res/icon/GameSaveSyncClient.png AppDir/
           wget -O linuxdeployqt-x86_64.AppImage \
           https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod +x linuxdeployqt-x86_64.AppImage
