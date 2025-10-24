@@ -87,10 +87,16 @@ jobs:
 
           ./sharun lib4bin --with-sharun --dst-dir AppDir AppDir/usr/bin/GameSaveSyncClient
 
+          find AppDir/usr/plugins -type f -name "*.so" | while read plugin; do
+            echo "Bundling dependencies for: $plugin"
+            ./sharun lib4bin --dst-dir AppDir "$plugin"
+          done
+
           cat > AppDir/AppRun << 'EOF'
           #!/bin/sh
           SELF=$(readlink -f "$0")
           HERE=${SELF%/*}
+          export LD_LIBRARY_PATH="${HERE}/lib:${HERE}/usr/lib:${LD_LIBRARY_PATH}"
           export QT_PLUGIN_PATH="${HERE}/usr/plugins"
           export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms"
           exec "${HERE}/sharun" GameSaveSyncClient "$@"
