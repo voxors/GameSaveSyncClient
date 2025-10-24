@@ -77,8 +77,8 @@ jobs:
           cp res/GameSaveSyncClient.desktop AppDir/
           cp res/icon/GameSaveSyncClient.png AppDir/
 
-          apt-get update
-          apt-get install -y libfuse2
+          sudo apt-get update
+          sudo apt-get install -y libfuse2
 
           wget -O sharun-$(uname -m)-aio https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-$(uname -m)-aio
           chmod +x sharun-$(uname -m)-aio
