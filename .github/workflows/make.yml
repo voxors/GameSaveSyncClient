@@ -17,14 +17,18 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           cache: true
-      - name: Install gcc-13
+      - name: Install LLVM/Clang 18
         run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-          sudo apt-get update -y
-          sudo apt install gcc-15 g++-15
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+          sudo apt-get install -y clang-tidy-21
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-21 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-21 100
+          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-21 100
       - name: Configure CMake
         run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-13
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-21
       - name: Build
         run: |
           cmake --build build --config Release
