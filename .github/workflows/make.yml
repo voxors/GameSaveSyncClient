@@ -75,7 +75,7 @@ jobs:
           mkdir -p AppDir/usr/bin
           mkdir -p AppDir/usr/plugins
           cp download/bin/Release/GameSaveSyncClient AppDir/usr/bin/
-
+          tree /
           export QT_PLUGIN_PATH="${QT_ROOT_DIR}/../../../plugins"
           cp -r "${QT_PLUGIN_PATH}/platforms" AppDir/usr/plugins/
           cp -r "${QT_PLUGIN_PATH}/platformthemes" AppDir/usr/plugins/
