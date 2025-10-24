@@ -78,6 +78,8 @@ jobs:
           export QT_PLUGIN_PATH="${QT_ROOT_DIR}/plugins"
           cp -r "${QT_PLUGIN_PATH}/." AppDir/usr/plugins/
 
+          rm -rf AppDir/usr/plugins/platformthemes
+
           sudo apt-get update
           sudo apt-get install -y libfuse2
 
@@ -97,8 +99,19 @@ jobs:
           SELF=$(readlink -f "$0")
           HERE=${SELF%/*}
           export LD_LIBRARY_PATH="${HERE}/lib:${HERE}/usr/lib:${LD_LIBRARY_PATH}"
-          export QT_PLUGIN_PATH="${HERE}/usr/plugins"
-          export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms"
+
+          if [ -z "$QT_PLUGIN_PATH" ]; then
+            export QT_PLUGIN_PATH="${HERE}/usr/plugins"
+          else
+            export QT_PLUGIN_PATH="${HERE}/usr/plugins:${QT_PLUGIN_PATH}"
+          fi
+
+          if [ -z "$QT_QPA_PLATFORM_PLUGIN_PATH" ]; then
+            export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms"
+          else
+            export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms:${QT_QPA_PLATFORM_PLUGIN_PATH}"
+          fi
+
           exec "${HERE}/sharun" GameSaveSyncClient "$@"
           EOF
           chmod +x AppDir/AppRun
@@ -111,6 +124,7 @@ jobs:
           ARCH=x86_64 ./appimagetool AppDir
 
           echo "appimage=$(ls *.AppImage)" >> "$GITHUB_OUTPUT"
+
       - name: Package AppImage
         if: ${{ success() }}
         uses: actions/upload-artifact@v4
