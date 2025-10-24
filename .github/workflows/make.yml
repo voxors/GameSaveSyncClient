@@ -96,6 +96,8 @@ jobs:
           #!/bin/sh
           SELF=$(readlink -f "$0")
           HERE=${SELF%/*}
+          export QT_PLUGIN_PATH="${HERE}/usr/plugins"
+          export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms"
           exec "${HERE}/sharun" GameSaveSyncClient "$@"
           EOF
           chmod +x AppDir/AppRun
