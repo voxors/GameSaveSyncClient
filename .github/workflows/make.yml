@@ -73,7 +73,16 @@ jobs:
         id: build-appimage
         run: |
           mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/plugins
           cp download/bin/Release/GameSaveSyncClient AppDir/usr/bin/
+
+          export QT_PLUGIN_PATH="${QT_ROOT_DIR}/../../../plugins"
+          cp -r "${QT_PLUGIN_PATH}/platforms" AppDir/usr/plugins/
+          cp -r "${QT_PLUGIN_PATH}/platformthemes" AppDir/usr/plugins/
+          cp -r "${QT_PLUGIN_PATH}/xcbglintegrations" AppDir/usr/plugins/
+          cp -r "${QT_PLUGIN_PATH}/wayland-decoration-client" AppDir/usr/plugins/
+          cp -r "${QT_PLUGIN_PATH}/wayland-graphics-integration-client" AppDir/usr/plugins/
+          cp -r "${QT_PLUGIN_PATH}/wayland-shell-integration" AppDir/usr/plugins/
 
           sudo apt-get update
           sudo apt-get install -y libfuse2
