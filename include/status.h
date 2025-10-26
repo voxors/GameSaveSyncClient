@@ -1,6 +1,12 @@
+#pragma once
+
 #include <QMap>
+#include <QMutex>
 #include <QObject>
+#include <QReadWriteLock>
 #include <QString>
+
+using potato = int;
 
 class Status : public QObject {
     Q_OBJECT
@@ -14,18 +20,28 @@ class Status : public QObject {
     Status& operator=(Status const&) = delete;
 
     QString getPathStatusById(int id) {
+        QReadLocker lock(&rwLock);
         return pathStatus.value(id, QString("path not found in path status"));
     }
 
-  public slots:
     void setPathStatus(QMap<int, QString> pathStatus) {
+        QWriteLocker lock(&rwLock);
         this->pathStatus = pathStatus;
+    }
+
+    QMutex& getLockedPathIdMutex(int id) {
+        QWriteLocker lock(&rwLock);
+        if (!lockedPathId.contains(id))
+            lockedPathId[id] = new QMutex();
+        return *lockedPathId[id];
     }
 
   protected:
     Status() : QObject() {}
-    ~Status() override = default;
+    ~Status() override { qDeleteAll(lockedPathId); }
 
   private:
+    mutable QReadWriteLock rwLock;
     QMap<int, QString> pathStatus;
+    QMap<int, QMutex*> lockedPathId;
 };

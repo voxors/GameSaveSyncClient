@@ -5,6 +5,7 @@
 #include <QMap>
 #include <QNetworkAccessManager>
 #include <QUrl>
+#include <expected>
 
 class UtilGameSyncServer {
   public:
@@ -39,6 +40,11 @@ class UtilGameSyncServer {
         QString operatingSystem;
     };
 
+    struct GameSavesReturn {
+        QString uuid;
+        QByteArray data;
+    };
+
     static constexpr QStringView windowsOS = u"windows";
     static constexpr QStringView linuxOS = u"linux";
     static constexpr QStringView undefined = u"undefined";
@@ -62,11 +68,15 @@ class UtilGameSyncServer {
     getPathByGameId(int gameId, bool forceFetch = false);
     QList<ExecutableJson> getExecutableByGameId(int id,
                                                 bool forceFetch = false);
-    QList<SaveJson> getSavesForPathId(int id);
+    QList<SaveJson> getSavesReferencesForPathId(int id);
+    std::expected<UtilGameSyncServer::GameSavesReturn, QString>
+    getGameSavesForPathId(int pathId);
     std::optional<QString>
-    postGameSavesForPathId(int pathId, int gameId,
+    postGameSavesForPathId(int pathId,
                            std::vector<utilFileSystem::FileHash> hashOfContent);
     bool testConnection(QUrl testURL);
+    std::expected<UtilGameSyncServer::GameSavesReturn, QString>
+    fetchLastSaveFromServer(int pathId);
 
     UtilGameSyncServer(UtilGameSyncServer const&) = delete;
     UtilGameSyncServer& operator=(UtilGameSyncServer const&) = delete;
@@ -80,5 +90,7 @@ class UtilGameSyncServer {
     QMap<int, QList<GamePath>> gamePathMap;
     QMap<int, QList<ExecutableJson>> gameExecutableMap;
 
-    QJsonDocument fetchRemoteEndpoint(QString endpoint, QUrl forcedURL = {});
+    QByteArray fetchRemoteEndpoint(QString endpoint, QUrl forcedURL = {});
+    QJsonDocument fetchRemoteJSONEndpoint(QString endpoint,
+                                          QUrl forcedURL = {});
 };
