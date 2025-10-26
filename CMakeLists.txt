@@ -65,7 +65,6 @@ add_executable(${TARGET_NAME}
     src/pathItemDelegate.cpp
     src/pathListModel.cpp
     src/setupWindow.cpp
-    src/status.cpp
     src/utilFileSystem.cpp
     src/utilGameSyncServer.cpp
 )

@@ -1,9 +1,11 @@
 #pragma once
 
 #include "pathListModel.h"
+#include <QFutureWatcher>
 #include <QLabel>
 #include <QListView>
 #include <QListWidget>
+#include <QPushButton>
 #include <QWidget>
 
 class DetailsViewWidget : public QWidget {
@@ -14,10 +16,15 @@ class DetailsViewWidget : public QWidget {
     void setGameID(int id);
     void refresh();
 
+  private slots:
+    void forcePull();
+
   private:
+    int gameID = 0;
     PathListModel* pathModel;
     QLabel* gameNameLabel;
     QListView* pathList;
     QListWidget* executableList;
-    int gameID = 0;
+    QPushButton* forcePullButton;
+    QFutureWatcher<void>* forcePullWatcher;
 };

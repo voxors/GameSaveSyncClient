@@ -2,7 +2,6 @@
 #include "config.h"
 #include "mainWindow.h"
 #include "setupWindow.h"
-#include "status.h"
 #include <QApplication>
 #include <QThread>
 
@@ -32,8 +31,6 @@ int main(int argc, char* argv[]) {
     auto mainWindow = new MainWindow;
     QObject::connect(worker, &BackgroundSyncWorker::errorOccurred, mainWindow,
                      &MainWindow::onErrorOccurred);
-    QObject::connect(worker, &BackgroundSyncWorker::pathStatusUpdate,
-                     &Status::getInstance(), &Status::setPathStatus);
 
     workerThread->start();
 

@@ -17,8 +17,8 @@
 #include <QThread>
 #include <QTimer>
 
-QJsonDocument UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint,
-                                                      QUrl forcedURL) {
+QByteArray UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint,
+                                                   QUrl forcedURL) {
     QNetworkAccessManager manager;
     QUrl baseUrl = config::getRemoteURL().adjusted(QUrl::StripTrailingSlash);
     if (!forcedURL.isEmpty())
@@ -40,6 +40,13 @@ QJsonDocument UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint,
     QByteArray data = reply->readAll();
     reply->deleteLater();
 
+    return data;
+}
+
+QJsonDocument UtilGameSyncServer::fetchRemoteJSONEndpoint(QString endpoint,
+                                                          QUrl forcedURL) {
+    auto data = fetchRemoteEndpoint(endpoint, forcedURL);
+
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
     if (parseError.error != QJsonParseError::NoError) {
@@ -53,7 +60,7 @@ QJsonDocument UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint,
 QList<UtilGameSyncServer::GameMetadata>
 UtilGameSyncServer::getGameMetadataList(bool forceFetch) {
     if (forceFetch || gameMetadataList.isEmpty()) {
-        QJsonDocument document = fetchRemoteEndpoint("/v1/games");
+        QJsonDocument document = fetchRemoteJSONEndpoint("/v1/games");
         QList<UtilGameSyncServer::GameMetadata> gamesMetadata;
 
         QJsonArray outerArray = document.array();
@@ -96,7 +103,7 @@ std::optional<QList<UtilGameSyncServer::GamePath>>
 UtilGameSyncServer::getPathByGameId(int gameId, bool forceFetch) {
     if (forceFetch || !this->gamePathMap.contains(gameId)) {
         QString endpoint = "/v1/games/" + QString::number(gameId) + "/paths";
-        QJsonDocument document = fetchRemoteEndpoint(endpoint);
+        QJsonDocument document = fetchRemoteJSONEndpoint(endpoint);
 
         if (!document.isArray())
             return std::nullopt;
@@ -124,7 +131,7 @@ UtilGameSyncServer::getExecutableByGameId(int gameId, bool forceFetch) {
     if (forceFetch || !this->gameExecutableMap.contains(gameId)) {
         QString endpoint =
             "/v1/games/" + QString::number(gameId) + "/executables";
-        QJsonDocument document = fetchRemoteEndpoint(endpoint);
+        QJsonDocument document = fetchRemoteJSONEndpoint(endpoint);
         if (document.isArray()) {
             QJsonArray outerArray = document.array();
             QList<UtilGameSyncServer::ExecutableJson> executablesJson;
@@ -155,9 +162,9 @@ UtilGameSyncServer::getExecutableByGameId(int gameId, bool forceFetch) {
 }
 
 QList<UtilGameSyncServer::SaveJson>
-UtilGameSyncServer::getSavesForPathId(int id) {
+UtilGameSyncServer::getSavesReferencesForPathId(int id) {
     QString endpoint = "/v1/paths/" + QString::number(id) + "/saves";
-    QJsonDocument document = fetchRemoteEndpoint(endpoint);
+    QJsonDocument document = fetchRemoteJSONEndpoint(endpoint);
 
     QList<UtilGameSyncServer::SaveJson> savesJson;
 
@@ -191,8 +198,7 @@ UtilGameSyncServer::getSavesForPathId(int id) {
 }
 
 std::optional<QString> UtilGameSyncServer::postGameSavesForPathId(
-    int pathId, int gameId, // NOLINT
-    std::vector<utilFileSystem::FileHash> hashOfContent) {
+    int pathId, std::vector<utilFileSystem::FileHash> hashOfContent) {
     QString endpoint = "/v1/paths/" + QString::number(pathId) + "/saves/upload";
     QUrl url = config::getRemoteURL().adjusted(QUrl::StripTrailingSlash);
     url.setPath(url.path() + endpoint);
@@ -206,10 +212,8 @@ std::optional<QString> UtilGameSyncServer::postGameSavesForPathId(
     }
     QJsonDocument hashDoc(hashArray);
 
-    QString tempDir =
-        QStandardPaths::writableLocation(QStandardPaths::TempLocation) +
-        "/GameSaveSyncClient";
-    QString zipPath = QDir(tempDir).filePath(QString::number(gameId) + ".zip");
+    QString tempDir = utilFileSystem::getUploadZipLocation();
+    QString zipPath = QDir(tempDir).filePath(QString::number(pathId) + ".zip");
     qDebug() << "Zip path:" << zipPath;
 
     auto multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
@@ -256,7 +260,82 @@ std::optional<QString> UtilGameSyncServer::postGameSavesForPathId(
     return uuid;
 }
 
+std::expected<UtilGameSyncServer::GameSavesReturn, QString>
+UtilGameSyncServer::getGameSavesForPathId(int pathId) {
+    QByteArray save{};
+    QString uuid;
+
+    QList<UtilGameSyncServer::SaveJson> savesJson =
+        UtilGameSyncServer::getInstance().getSavesReferencesForPathId(pathId);
+    if (!savesJson.isEmpty()) {
+        std::ranges::sort(
+            savesJson,
+            [](const UtilGameSyncServer::SaveJson& value1,
+               const UtilGameSyncServer::SaveJson& value2) -> int {
+                return value1.unixTime < value2.unixTime;
+            });
+
+        UtilGameSyncServer::SaveJson lastSave = savesJson.last();
+        QString endpoint = "/v1/saves/" + lastSave.uuid;
+
+        save = fetchRemoteEndpoint(endpoint);
+        uuid = lastSave.uuid;
+    }
+
+    return !save.isEmpty() || !uuid.isEmpty()
+               ? std::expected<UtilGameSyncServer::GameSavesReturn,
+                               QString>{GameSavesReturn{.uuid = uuid,
+                                                        .data = save}}
+               : std::unexpected{"Undefined error while downloading save file"};
+}
+
 bool UtilGameSyncServer::testConnection(QUrl testURL) {
     return testURL.isValid() &&
-           !fetchRemoteEndpoint("/v1/games", testURL).isEmpty();
+           !fetchRemoteJSONEndpoint("/v1/games", testURL).isEmpty();
+}
+
+std::expected<UtilGameSyncServer::GameSavesReturn, QString>
+UtilGameSyncServer::fetchLastSaveFromServer(int pathId) {
+    return getGameSavesForPathId(pathId)
+        .and_then(
+            [&](UtilGameSyncServer::GameSavesReturn gameSave)
+                -> std::expected<UtilGameSyncServer::GameSavesReturn, QString> {
+                if (utilFileSystem::writeFileToFileSystemAtDownload(
+                        pathId, gameSave.data)) {
+                    return std::expected<UtilGameSyncServer::GameSavesReturn,
+                                         QString>{};
+                } else {
+                    return std::unexpected{
+                        "Failed to write tmp file to file system"};
+                }
+            })
+        .and_then(
+            [&](UtilGameSyncServer::GameSavesReturn gameSave)
+                -> std::expected<UtilGameSyncServer::GameSavesReturn, QString> {
+                if (utilFileSystem::unzipZipAtDownload(pathId)) {
+                    return std::expected<UtilGameSyncServer::GameSavesReturn,
+                                         QString>{gameSave};
+                } else {
+                    return std::unexpected{"Failed to unzip the file"};
+                }
+            })
+        .and_then(
+            [&](UtilGameSyncServer::GameSavesReturn gameSave)
+                -> std::expected<UtilGameSyncServer::GameSavesReturn, QString> {
+                if (utilFileSystem::replaceFileAtDestination(
+                        pathId, config::getPath(pathId))) {
+                    config::updateUUIDForPath(pathId, gameSave.uuid);
+                    return std::expected<UtilGameSyncServer::GameSavesReturn,
+                                         QString>{gameSave};
+                } else {
+                    return std::unexpected{
+                        "Failed to copy save content to destination"};
+                }
+            })
+        .or_else(
+            [&](const QString& error)
+                -> std::expected<UtilGameSyncServer::GameSavesReturn, QString> {
+                qWarning() << "Path" << pathId << "error:" << error;
+                return std::unexpected(error);
+            });
 }

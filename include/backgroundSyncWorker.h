@@ -18,7 +18,6 @@ class BackgroundSyncWorker : public QObject {
   signals:
     void syncFinished();
     void errorOccurred(QString);
-    void pathStatusUpdate(QMap<int, QString>);
 
   private:
     void validatePaths();

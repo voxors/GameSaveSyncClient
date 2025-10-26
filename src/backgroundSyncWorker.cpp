@@ -1,6 +1,7 @@
 #include "backgroundSyncWorker.h"
 
 #include "config.h"
+#include "status.h"
 #include "utilFileSystem.h"
 #include "utilGameSyncServer.h"
 #include <algorithm>
@@ -22,7 +23,7 @@ bool shouldUploadLocalFile(int pathId) {
         return false;
 
     QList<UtilGameSyncServer::SaveJson> savesJson =
-        UtilGameSyncServer::getInstance().getSavesForPathId(pathId);
+        UtilGameSyncServer::getInstance().getSavesReferencesForPathId(pathId);
     if (savesJson.isEmpty())
         return true;
 
@@ -91,14 +92,16 @@ void BackgroundSyncWorker::syncGameSaveToServer() {
     for (int gameId : config::returnAllIds()) {
         forEachGamePath(
             gameId, [&](int pathId, const QString& configPath) -> void {
+                QMutexLocker locker(
+                    &Status::getInstance().getLockedPathIdMutex(pathId));
+
                 if (!shouldUploadLocalFile(pathId))
                     return;
 
-                auto hashes = utilFileSystem::createZip(QString::number(gameId),
-                                                        configPath);
-                if (auto uuid =
-                        UtilGameSyncServer::getInstance()
-                            .postGameSavesForPathId(pathId, gameId, hashes);
+                auto hashes =
+                    utilFileSystem::createZipForUpload(pathId, configPath);
+                if (auto uuid = UtilGameSyncServer::getInstance()
+                                    .postGameSavesForPathId(pathId, hashes);
                     uuid.has_value()) {
                     config::updateUUIDForPath(pathId, uuid.value());
                 }
@@ -117,7 +120,7 @@ void BackgroundSyncWorker::validatePaths() {
                                 pathStatus.insert(pathId, {});
                         });
     }
-    emit pathStatusUpdate(pathStatus);
+    Status::getInstance().setPathStatus(pathStatus);
 }
 
 void BackgroundSyncWorker::update() {

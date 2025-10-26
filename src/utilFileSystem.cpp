@@ -23,10 +23,35 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QMutexLocker>
 #include <QStandardPaths>
 
 namespace utilFileSystem {
 bool validatePath(const QString path) { return !getBasePath(path).isEmpty(); }
+
+QString getUploadZipLocation() {
+    QString tempDir =
+        QStandardPaths::writableLocation(QStandardPaths::TempLocation) +
+        "/GameSaveSyncClient/upload/zip";
+    QDir(tempDir).mkpath(".");
+    return tempDir;
+}
+
+QString getDownloadZipLocation() {
+    QString tempDir =
+        QStandardPaths::writableLocation(QStandardPaths::TempLocation) +
+        "/GameSaveSyncClient/download/zip";
+    QDir(tempDir).mkpath(".");
+    return tempDir;
+}
+
+QString getUnzippedLocation(int pathId) {
+    QString tempDir =
+        QStandardPaths::writableLocation(QStandardPaths::TempLocation) +
+        "/GameSaveSyncClient/download/" + QString::number(pathId);
+    QDir(tempDir).mkpath(".");
+    return tempDir;
+}
 
 QString getBasePath(const QString path) {
     if (path.isEmpty()) {
@@ -113,18 +138,54 @@ QString extractPattern(const QString fullPath) {
     return pattern;
 }
 
-std::vector<FileHash> createZip(const QString gameId, // NOLINT
-                                const QString path) {
+bool unzipZipAtDownload(const int pathId) {
+    QString tempDir = getDownloadZipLocation();
+    QString zipFile = QDir(tempDir).filePath(QString::number(pathId) + ".zip");
+    QString zipDestination = getUnzippedLocation(pathId);
+    QDir zipDestDir(zipDestination);
+    zipDestDir.removeRecursively();
+    zipDestDir.mkpath(".");
+
+    mz_zip_archive zip;
+    memset(&zip, 0, sizeof(zip));
+    if (!mz_zip_reader_init_file(&zip, zipFile.toStdString().c_str(), 0))
+        return false;
+
+    for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&zip); i++) {
+        mz_zip_archive_file_stat fileInfo;
+        memset(&fileInfo, 0, sizeof(fileInfo));
+        mz_zip_reader_file_stat(&zip, i, &fileInfo);
+        if (fileInfo.m_is_directory) {
+            QDir(zipDestDir.filePath(fileInfo.m_filename)).mkpath(".");
+            continue;
+        }
+        QString relativePath(fileInfo.m_filename);
+        if (relativePath.contains("/")) {
+            relativePath = relativePath.left(relativePath.lastIndexOf("/"));
+            QDir(zipDestDir.filePath(relativePath)).mkpath(".");
+        }
+
+        if (!mz_zip_reader_extract_to_file(
+                &zip, i,
+                zipDestDir.filePath(fileInfo.m_filename).toStdString().c_str(),
+                0)) {
+            return false;
+        }
+    }
+
+    mz_zip_reader_end(&zip);
+
+    return true;
+}
+
+std::vector<FileHash> createZipForUpload(const int pathId, const QString path) {
     QString basePath = getBasePath(path);
     QString pattern = extractPattern(path);
 
-    QString tempDir =
-        QStandardPaths::writableLocation(QStandardPaths::TempLocation) +
-        "/GameSaveSyncClient";
-    QDir(tempDir).mkpath(".");
+    QString tempDir = getUploadZipLocation();
 
     QFileInfo baseInfo(basePath);
-    QString zipName = gameId + ".zip";
+    QString zipName = QString::number(pathId) + ".zip";
     QString zipPath = QDir(tempDir).filePath(zipName);
 
     std::vector<FileHash> hashes;
@@ -168,6 +229,50 @@ std::vector<FileHash> createZip(const QString gameId, // NOLINT
     mz_zip_writer_end(&zip);
 
     return hashes;
+}
+
+bool writeFileToFileSystemAtDownload(const int pathId, const QByteArray data) {
+    QString tempDir = getDownloadZipLocation();
+
+    QFile zipFile(QDir(tempDir).filePath(QString::number(pathId) + ".zip"));
+    if (!zipFile.open(QFile::WriteOnly | QFile::Truncate))
+        return false;
+
+    zipFile.write(data);
+
+    return true;
+}
+
+bool replaceFileAtDestination(const int pathId, const QString destination) {
+    if (!QDir(getUnzippedLocation(pathId)).exists())
+        return false;
+
+    for (const QString& fileString :
+         listFiles(getBasePath(destination), extractPattern(destination))) {
+        QFile file(fileString);
+        if (file.exists())
+            file.remove();
+    }
+
+    QDirIterator files(QDir(getUnzippedLocation(pathId)).absolutePath(),
+                       QDir::Files, QDirIterator::Subdirectories);
+    while (files.hasNext()) {
+        QString filePath = files.next();
+        QFileInfo fileInfo(filePath);
+        if (!fileInfo.isFile())
+            continue;
+
+        QString relativePath =
+            QDir(getUnzippedLocation(pathId)).relativeFilePath(filePath);
+
+        QDir(QDir(destination).absoluteFilePath(relativePath)).mkdir(".");
+        if (!QFile::copy(fileInfo.absoluteFilePath(),
+                         QDir(destination).absoluteFilePath(relativePath))) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 } // namespace utilFileSystem
