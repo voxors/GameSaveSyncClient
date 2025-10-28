@@ -339,3 +339,15 @@ UtilGameSyncServer::fetchLastSaveFromServer(int pathId) {
                 return std::unexpected(error);
             });
 }
+
+std::expected<void, QString>
+UtilGameSyncServer::pushLocalSaveToServer(int pathId) {
+    auto hashes =
+        utilFileSystem::createZipForUpload(pathId, config::getPath(pathId));
+    auto uuid = UtilGameSyncServer::getInstance().postGameSavesForPathId(
+        pathId, hashes);
+    if (!uuid.has_value())
+        return std::unexpected<QString>{"failed to post game save"};
+    config::updateUUIDForPath(pathId, uuid.value());
+    return std::expected<void, QString>{};
+}

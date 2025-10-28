@@ -57,13 +57,12 @@ QString getPath(int pathID) {
 
 QString getUUIDForPath(int pathID) {
     QSettings settings = config::getConfig();
-    return settings.value(getPathUUIDKey(pathID) + "/last_save", QString{})
-        .toString();
+    return settings.value(getPathUUIDKey(pathID), QString{}).toString();
 }
 
 void updateUUIDForPath(int pathID, QString uuid) {
     QSettings settings = config::getConfig();
-    settings.setValue(getPathUUIDKey(pathID) + "/last_save", uuid);
+    settings.setValue(getPathUUIDKey(pathID), uuid);
 }
 
 void removeUUIDForPath(int pathID) {
