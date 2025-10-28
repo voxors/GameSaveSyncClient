@@ -43,30 +43,30 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 add_executable(${TARGET_NAME}
-    include/addGameDialog.h
-    include/backgroundSyncWorker.h
-    include/config.h
-    include/detailsViewWidget.h
-    include/mainWindow.h
-    include/pathEditableRowWidget.h
-    include/pathItemDelegate.h
-    include/pathListModel.h
-    include/setupWindow.h
-    include/status.h
-    include/utilFileSystem.h
-    include/utilGameSyncServer.h
     src/addGameDialog.cpp
+    src/addGameDialog.h
     src/backgroundSyncWorker.cpp
+    src/backgroundSyncWorker.h
     src/config.cpp
+    src/config.h
     src/detailsViewWidget.cpp
+    src/detailsViewWidget.h
     src/main.cpp
     src/mainWindow.cpp
+    src/mainWindow.h
     src/pathEditableRowWidget.cpp
+    src/pathEditableRowWidget.h
     src/pathItemDelegate.cpp
+    src/pathItemDelegate.h
     src/pathListModel.cpp
+    src/pathListModel.h
     src/setupWindow.cpp
+    src/setupWindow.h
+    src/status.h
     src/utilFileSystem.cpp
+    src/utilFileSystem.h
     src/utilGameSyncServer.cpp
+    src/utilGameSyncServer.h
 )
 
 target_compile_definitions(${TARGET_NAME} PRIVATE
@@ -92,7 +92,7 @@ endif()
 
 target_include_directories(
     ${TARGET_NAME} PRIVATE ${Qt${QT_MAJOR_VERSION}_INCLUDE_DIRS}
-    ${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include
+    ${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src
 )
 
 set_target_properties(${TARGET_NAME} PROPERTIES
