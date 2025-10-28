@@ -11,6 +11,8 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setApplicationName("GameSaveSyncClient");
     QCoreApplication::setApplicationVersion("0.1");
 
+    app.setWindowIcon(QIcon(":/res/icon/GameSaveSyncClientTray.svg"));
+
     app.setQuitOnLastWindowClosed(false);
 
     if (!config::getRemoteURL().isValid()) {
