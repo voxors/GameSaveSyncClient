@@ -22,6 +22,7 @@ class MainWindow : public QMainWindow {
 
   private:
     DetailsViewWidget* detailsView;
+    QAction* aboutDialogAction;
     QAction* aboutQtAction;
     QAction* addGameDialogAction;
     QAction* quitAction;

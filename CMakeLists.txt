@@ -10,6 +10,7 @@ set(QT_MAJOR_VERSION 6)
 project(${TARGET_NAME} VERSION 0.1 DESCRIPTION "GameSaveSyncClient")
 
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS
@@ -34,6 +35,10 @@ find_package(Qt${QT_MAJOR_VERSION} COMPONENTS Widgets
     REQUIRED PATHS $ENV{Qt${QT_MAJOR_VERSION}_HOME})
 find_package(Qt${QT_MAJOR_VERSION} COMPONENTS Network
     REQUIRED PATHS $ENV{Qt${QT_MAJOR_VERSION}_HOME})
+find_package(Qt${QT_MAJOR_VERSION} COMPONENTS Svg
+    REQUIRED PATHS $ENV{Qt${QT_MAJOR_VERSION}_HOME})
+find_package(Qt${QT_MAJOR_VERSION} COMPONENTS SvgWidgets
+    REQUIRED PATHS $ENV{Qt${QT_MAJOR_VERSION}_HOME})
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release"
@@ -43,6 +48,8 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 add_executable(${TARGET_NAME}
+    src/aboutDialog.cpp
+    src/aboutDialog.h
     src/addGameDialog.cpp
     src/addGameDialog.h
     src/backgroundSyncWorker.cpp
@@ -67,6 +74,12 @@ add_executable(${TARGET_NAME}
     src/utilFileSystem.h
     src/utilGameSyncServer.cpp
     src/utilGameSyncServer.h
+)
+
+qt_add_resources(${TARGET_NAME} "icons"
+    PREFIX "/"
+    FILES
+        res/icon/GameSaveSyncClient.svg
 )
 
 target_compile_definitions(${TARGET_NAME} PRIVATE
@@ -119,8 +132,11 @@ else()
     target_compile_options(miniz_static PRIVATE -w)
 endif()
 
-target_link_libraries(${TARGET_NAME} PRIVATE miniz_static)
 target_link_libraries(${TARGET_NAME}
-    PRIVATE Qt${QT_MAJOR_VERSION}::Widgets)
-target_link_libraries(${TARGET_NAME}
-    PRIVATE Qt${QT_MAJOR_VERSION}::Network)
+    PRIVATE
+        miniz_static
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Network
+        Qt${QT_MAJOR_VERSION}::Svg
+        Qt${QT_MAJOR_VERSION}::SvgWidgets
+)

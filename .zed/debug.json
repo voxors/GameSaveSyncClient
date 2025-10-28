@@ -8,7 +8,7 @@
       "env": { "CXX": "/usr/bin/clang-cpp" }
     },
     "program": "$ZED_WORKTREE_ROOT/build/bin/Debug/GameSaveSyncClient",
-    "cwd": "$ZED_WORKTREE_ROOT/working directory",
+    "cwd": "$ZED_WORKTREE_ROOT/build/bin/Debug/",
     "request": "launch",
     "adapter": "CodeLLDB"
   }

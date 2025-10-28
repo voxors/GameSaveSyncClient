@@ -9,6 +9,7 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("GameSaveSync");
     QCoreApplication::setApplicationName("GameSaveSyncClient");
+    QCoreApplication::setApplicationVersion("0.1");
 
     app.setQuitOnLastWindowClosed(false);
 
