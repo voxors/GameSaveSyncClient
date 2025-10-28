@@ -77,6 +77,7 @@ class UtilGameSyncServer {
     bool testConnection(QUrl testURL);
     std::expected<UtilGameSyncServer::GameSavesReturn, QString>
     fetchLastSaveFromServer(int pathId);
+    std::expected<void, QString> pushLocalSaveToServer(int pathId);
 
     UtilGameSyncServer(UtilGameSyncServer const&) = delete;
     UtilGameSyncServer& operator=(UtilGameSyncServer const&) = delete;

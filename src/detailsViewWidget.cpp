@@ -25,8 +25,17 @@ DetailsViewWidget::DetailsViewWidget(QWidget* parent) : QWidget(parent) {
     forcePullWatcher = new QFutureWatcher<void>(this);
     connect(forcePullWatcher, &QFutureWatcher<void>::finished, this,
             [this]() -> void { forcePullButton->setEnabled(true); });
+    forcePushButton = new QPushButton("Force Push");
+    forcePushButton->setToolTip(
+        "Delete remote save content and replace it with the local save");
+    connect(forcePushButton, &QPushButton::clicked, this,
+            &DetailsViewWidget::forcePush);
+    forcePushWatcher = new QFutureWatcher<void>(this);
+    connect(forcePushWatcher, &QFutureWatcher<void>::finished, this,
+            [this]() -> void { forcePushButton->setEnabled(true); });
     pathButtonLayout->addStretch();
     pathButtonLayout->addWidget(forcePullButton);
+    pathButtonLayout->addWidget(forcePushButton);
     executableList = new QListWidget(this);
 
     mainLayout->addWidget(gameNameLabel);
@@ -92,4 +101,33 @@ void DetailsViewWidget::forcePull() {
     });
 
     forcePullWatcher->setFuture(future);
+}
+
+void DetailsViewWidget::forcePush() {
+    if (gameID == 0) {
+        return;
+    }
+
+    std::optional<QList<UtilGameSyncServer::GamePath>> maybePathList =
+        UtilGameSyncServer::getInstance().getPathByGameId(gameID, true);
+
+    if (!maybePathList.has_value())
+        return;
+
+    forcePushButton->setEnabled(false);
+
+    QFuture<void> future = QtConcurrent::run([maybePathList]() -> void {
+        for (UtilGameSyncServer::GamePath path : maybePathList.value()) {
+            QMutexLocker locker(
+                &Status::getInstance().getLockedPathIdMutex(path.id));
+            std::expected<void, QString> result =
+                UtilGameSyncServer::getInstance().pushLocalSaveToServer(
+                    path.id);
+            if (!result.has_value())
+                qWarning() << "Error while sync Game Save to Server : " +
+                                  result.error();
+        }
+    });
+
+    forcePushWatcher->setFuture(future);
 }

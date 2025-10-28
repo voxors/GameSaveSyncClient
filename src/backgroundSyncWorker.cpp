@@ -90,22 +90,19 @@ void forEachGamePath(
 
 void BackgroundSyncWorker::syncGameSaveToServer() {
     for (int gameId : config::returnAllIds()) {
-        forEachGamePath(
-            gameId, [&](int pathId, const QString& configPath) -> void {
-                QMutexLocker locker(
-                    &Status::getInstance().getLockedPathIdMutex(pathId));
+        forEachGamePath(gameId, [&](int pathId, const QString&) -> void {
+            QMutexLocker locker(
+                &Status::getInstance().getLockedPathIdMutex(pathId));
 
-                if (!shouldUploadLocalFile(pathId))
-                    return;
+            if (!shouldUploadLocalFile(pathId))
+                return;
 
-                auto hashes =
-                    utilFileSystem::createZipForUpload(pathId, configPath);
-                if (auto uuid = UtilGameSyncServer::getInstance()
-                                    .postGameSavesForPathId(pathId, hashes);
-                    uuid.has_value()) {
-                    config::updateUUIDForPath(pathId, uuid.value());
-                }
-            });
+            std::expected<void, QString> result =
+                UtilGameSyncServer::getInstance().pushLocalSaveToServer(pathId);
+            if (!result.has_value())
+                qWarning() << "Error while sync Game Save to Server : " +
+                                  result.error();
+        });
     }
 }
 
