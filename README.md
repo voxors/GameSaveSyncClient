@@ -1,5 +1,5 @@
 <h3 align="center">
-    <img src="https://raw.githubusercontent.com/voxors/GameSaveSyncClient/main/res/icon/GameSaveSyncClient.png" width="100" alt="GameSaveSyncClient Logo"/></br>
+    <img src="https://raw.githubusercontent.com/voxors/GameSaveSyncClient/main/res/icon/GameSaveSyncClient.svg" width="100" alt="GameSaveSyncClient Logo"/></br>
 </h3>
 
 <p align="center">
@@ -10,19 +10,18 @@
 
 # GameSaveSyncClient
 
-GameSaveSyncClient is a cross‑platform Qt desktop application that synchronizes local game‑save folders with a remote GameSaveSync server.
-It automatically detects game‑save paths on the local machine, uploads new or modified saves, and can download missing saves from the server.
+GameSaveSyncClient is a cross‑platform Qt desktop application that synchronizes local game‑save folders with a remote GameSaveSync server, uploads new or modified saves, and can download missing saves from the server.
 The client communicates with the server via a simple JSON‑over‑HTTP API and stores the sync state in a local SQLite database.
 
 ## Build Requirements
 
-- **Qt 6.x** (Widgets and Network modules). The project uses CMake to locate Qt; set the `Qt6_HOME` environment variable or let CMake find Qt automatically on the system path.
+- **Qt 6.x** (Widgets, Network Svg and SvgWidgets modules). The project uses CMake to locate Qt; set the `Qt6_HOME` environment variable or let CMake find Qt automatically on the system path.
 - **CMake ≥ 3.16** (used for project configuration).
 - **Miniz** (automatically fetched by CMake – no separate install required).
 
 ## Running Requirements
 
-- **A running GameSaveSync server** – the client needs the base URL, which is configurable in the Setup dialog the first time it starts.
+- **A running [GameSaveSyncServer](https://github.com/voxors/GameSaveSyncServer)** – the client needs the base URL, which is configurable in the Setup dialog the first time it starts.
 
 ## Build Instructions
 

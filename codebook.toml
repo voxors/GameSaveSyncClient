@@ -1,5 +1,6 @@
 words = [
     "crc",
     "gzip",
+    "miniz",
     "nolint",
 ]

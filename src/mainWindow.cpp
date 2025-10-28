@@ -1,4 +1,5 @@
 #include "mainWindow.h"
+#include "aboutDialog.h"
 #include "addGameDialog.h"
 #include "config.h"
 #include "detailsViewWidget.h"
@@ -52,8 +53,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     syncMenu->addAction(removeGameFromSyncAction);
 
     aboutMenu = mainMenuBar->addMenu("&About");
-    aboutQtAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::HelpAbout),
-                                "about &Qt", this);
+    aboutDialogAction = new QAction(
+        QIcon::fromTheme(QIcon::ThemeIcon::HelpAbout), "&About", this);
+    aboutDialogAction->setStatusTip("Show about dialog");
+    connect(aboutDialogAction, &QAction::triggered, this, [this]() -> void {
+        auto* dialog = new AboutDialog(this);
+        dialog->show();
+    });
+    aboutMenu->addAction(aboutDialogAction);
+    aboutQtAction = new QAction("About &Qt", this);
     aboutQtAction->setStatusTip("Show about dialog from Qt");
     connect(aboutQtAction, &QAction::triggered, this,
             [this]() -> void { QMessageBox::aboutQt(this); });
