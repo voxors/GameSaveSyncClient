@@ -80,6 +80,7 @@ qt_add_resources(${TARGET_NAME} "icons"
     PREFIX "/"
     FILES
         res/icon/GameSaveSyncClient.svg
+        res/icon/GameSaveSyncClientTray.svg
 )
 
 target_compile_definitions(${TARGET_NAME} PRIVATE

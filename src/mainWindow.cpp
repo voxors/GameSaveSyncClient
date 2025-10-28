@@ -103,6 +103,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     trayMenu->addSeparator();
     trayMenu->addAction(quitAction);
     trayIcon->setContextMenu(trayMenu);
+    trayIcon->setIcon(QIcon(":/res/icon/GameSaveSyncClientTray.svg"));
     trayIcon->setToolTip("GameSaveSyncClient");
     trayIcon->show();
 
