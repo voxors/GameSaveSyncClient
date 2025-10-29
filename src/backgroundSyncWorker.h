@@ -22,4 +22,5 @@ class BackgroundSyncWorker : public QObject {
   private:
     void validatePaths();
     void syncGameSaveToServer();
+    void syncGameSaveFromServer();
 };

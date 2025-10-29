@@ -70,8 +70,6 @@ bool shouldUploadLocalFile(int pathId) {
     return true;
 }
 
-namespace {
-
 void forEachGamePath(
     int gameId,
     std::function<void(int pathId, const QString& configPath)> callback) {
@@ -86,8 +84,6 @@ void forEachGamePath(
     }
 }
 
-} // namespace
-
 void BackgroundSyncWorker::syncGameSaveToServer() {
     for (int gameId : config::returnAllIds()) {
         forEachGamePath(gameId, [&](int pathId, const QString&) -> void {
@@ -101,6 +97,80 @@ void BackgroundSyncWorker::syncGameSaveToServer() {
                 UtilGameSyncServer::getInstance().pushLocalSaveToServer(pathId);
             if (!result.has_value())
                 qWarning() << "Error while sync Game Save to Server : " +
+                                  result.error();
+        });
+    }
+}
+
+bool shouldDownloadToLocalFile(int pathId) {
+    QString configPath = config::getPath(pathId);
+    if (!utilFileSystem::validatePath(configPath))
+        return false;
+
+    QList<UtilGameSyncServer::SaveJson> savesJson =
+        UtilGameSyncServer::getInstance().getSavesReferencesForPathId(pathId);
+    if (savesJson.isEmpty())
+        return false;
+
+    QString currentUUID = config::getUUIDForPath(pathId);
+
+    std::ranges::sort(savesJson,
+                      [](const UtilGameSyncServer::SaveJson& value1,
+                         const UtilGameSyncServer::SaveJson& value2) -> int {
+                          return value1.unixTime < value2.unixTime;
+                      });
+
+    UtilGameSyncServer::SaveJson lastSave = savesJson.last();
+    if (lastSave.uuid == config::getUUIDForPath(pathId)) {
+        return false;
+    }
+
+    auto currentSave = std::ranges::find_if(
+        savesJson, [&](const UtilGameSyncServer::SaveJson& value) -> bool {
+            return value.uuid == currentUUID;
+        });
+    if (currentSave == savesJson.end())
+        return false;
+
+    std::vector<utilFileSystem::FileHash> dbHashes;
+    dbHashes.reserve(currentSave->savesHash.size());
+    std::ranges::transform(currentSave->savesHash, std::back_inserter(dbHashes),
+                           [](const UtilGameSyncServer::SaveHash& saveHash)
+                               -> utilFileSystem::FileHash {
+                               return utilFileSystem::FileHash{
+                                   .relativePath = saveHash.relativePath,
+                                   .hash = saveHash.hash,
+                               };
+                           });
+
+    QString basePath = utilFileSystem::getBasePath(configPath);
+    QString pattern = utilFileSystem::extractPattern(configPath);
+    std::vector<QString> listOfFile =
+        utilFileSystem::listFiles(basePath, pattern);
+    std::vector<utilFileSystem::FileHash> currentFileHash =
+        utilFileSystem::getHashFiles(listOfFile, basePath);
+
+    if (dbHashes != currentFileHash) {
+        return false;
+    }
+
+    return true;
+}
+
+void BackgroundSyncWorker::syncGameSaveFromServer() {
+    for (int gameID : config::returnAllIds()) {
+        forEachGamePath(gameID, [&](int pathId, const QString&) -> void {
+            QMutexLocker locker(
+                &Status::getInstance().getLockedPathIdMutex(pathId));
+
+            if (!shouldDownloadToLocalFile(pathId))
+                return;
+
+            std::expected<UtilGameSyncServer::GameSavesReturn, QString> result =
+                UtilGameSyncServer::getInstance().fetchLastSaveFromServer(
+                    pathId);
+            if (!result.has_value())
+                qWarning() << "Error while sync Game Save from Server : " +
                                   result.error();
         });
     }
@@ -123,6 +193,7 @@ void BackgroundSyncWorker::validatePaths() {
 void BackgroundSyncWorker::update() {
     try {
         validatePaths();
+        syncGameSaveFromServer();
         syncGameSaveToServer();
         emit syncFinished();
     } catch (const std::exception& e) {

@@ -262,12 +262,16 @@ bool replaceFileAtDestination(const int pathId, const QString destination) {
         if (!fileInfo.isFile())
             continue;
 
-        QString relativePath =
+        QString relativeFilePath =
             QDir(getUnzippedLocation(pathId)).relativeFilePath(filePath);
+        QString relativePath =
+            QDir(getUnzippedLocation(pathId))
+                .relativeFilePath(QFileInfo(filePath).path());
 
-        QDir(QDir(destination).absoluteFilePath(relativePath)).mkdir(".");
-        if (!QFile::copy(fileInfo.absoluteFilePath(),
-                         QDir(destination).absoluteFilePath(relativePath))) {
+        QDir(QDir(destination).absoluteFilePath(relativePath)).mkpath(".");
+        if (!QFile::copy(
+                fileInfo.absoluteFilePath(),
+                QDir(destination).absoluteFilePath(relativeFilePath))) {
             return false;
         }
     }
