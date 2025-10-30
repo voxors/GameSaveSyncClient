@@ -117,6 +117,12 @@ target_include_directories(miniz_static
     PUBLIC SYSTEM "${miniz_SOURCE_DIR}"
 )
 
+target_compile_options(miniz_static INTERFACE
+  $<$<CXX_COMPILER_ID:Clang>:-Wno-unused-function>
+  $<$<CXX_COMPILER_ID:GNU>:-Wno-unused-function>
+  $<$<CXX_COMPILER_ID:MSVC>:/wd4505>
+)
+
 if(MSVC)
     target_compile_options(miniz_static PRIVATE /W0)
 else()
