@@ -1,30 +1,12 @@
 #include "utilFileSystem.h"
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
-#include <miniz.h>
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-function"
-#include <miniz.h>
-#pragma GCC diagnostic pop
-#elif defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4505)
-#include <miniz.h>
-#pragma warning(pop)
-#else
-#include <miniz.h>
-#endif
-
 #include <QCryptographicHash>
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QMutexLocker>
 #include <QStandardPaths>
+#include <miniz.h>
 
 namespace utilFileSystem {
 bool validatePath(const QString path) { return !getBasePath(path).isEmpty(); }
