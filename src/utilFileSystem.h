@@ -11,9 +11,7 @@ struct FileHash {
         return relativePath == other.relativePath && hash == other.hash;
     }
 
-    bool operator!=(const FileHash& other) const noexcept {
-        return !(*this == other);
-    }
+    bool operator!=(const FileHash& other) const noexcept { return !(*this == other); }
 };
 
 QString getUploadZipLocation();
@@ -22,8 +20,7 @@ QString getUnzippedLocation(int pathId);
 
 bool validatePath(const QString path);
 QString getBasePath(const QString path);
-std::vector<FileHash> getHashFiles(const std::vector<QString>& filePaths,
-                                   const QString& basePath);
+std::vector<FileHash> getHashFiles(const std::vector<QString>& filePaths, const QString& basePath);
 std::vector<FileHash> createZipForUpload(const int pathId, const QString path);
 bool unzipZipAtDownload(const int pathId);
 std::vector<QString> listFiles(const QString basePath, const QString pattern);

@@ -14,8 +14,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 
     auto* logoSvgWidget = new QSvgWidget(":/res/icon/GameSaveSyncClient.svg");
     logoSvgWidget->renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
-    logoSvgWidget->setSizePolicy(
-        {QSizePolicy::Maximum, QSizePolicy::Preferred});
+    logoSvgWidget->setSizePolicy({QSizePolicy::Maximum, QSizePolicy::Preferred});
     layout->addWidget(logoSvgWidget, Qt::AlignCenter);
 
     QString applicationName = QCoreApplication::applicationName();
@@ -34,8 +33,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 
     auto* buttonLayout = new QHBoxLayout();
     auto* closeButton = new QPushButton("Ok");
-    connect(closeButton, &QPushButton::clicked, this,
-            [&]() -> void { this->close(); });
+    connect(closeButton, &QPushButton::clicked, this, [&]() -> void { this->close(); });
     buttonLayout->addStretch();
     buttonLayout->addWidget(closeButton);
     layout->addLayout(buttonLayout);

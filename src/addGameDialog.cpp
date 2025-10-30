@@ -4,16 +4,15 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-void addRemoteGameListToSyncList(
-    QList<UtilGameSyncServer::GameMetadata> gamesMetadata, QListWidget* list) {
+void addRemoteGameListToSyncList(QList<UtilGameSyncServer::GameMetadata> gamesMetadata,
+                                 QListWidget* list) {
 
-    std::ranges::sort(
-        gamesMetadata,
-        [](const UtilGameSyncServer::GameMetadata& value1,
-           const UtilGameSyncServer::GameMetadata& value2) -> int {
-            return QString::compare(value1.defaultName, value2.defaultName,
-                                    Qt::CaseInsensitive) < 0;
-        });
+    std::ranges::sort(gamesMetadata,
+                      [](const UtilGameSyncServer::GameMetadata& value1,
+                         const UtilGameSyncServer::GameMetadata& value2) -> int {
+                          return QString::compare(value1.defaultName, value2.defaultName,
+                                                  Qt::CaseInsensitive) < 0;
+                      });
 
     for (const UtilGameSyncServer::GameMetadata& gameMetadata : gamesMetadata) {
         auto item = new QListWidgetItem(gameMetadata.defaultName, list);
@@ -37,14 +36,12 @@ AddGameDialog::AddGameDialog(QWidget* parent) : QDialog(parent) {
     auto buttonLayout = new QHBoxLayout();
     buttonLayout->addStretch();
     cancelButton = new QPushButton("Cancel", this);
-    connect(cancelButton, &QPushButton::clicked, this,
-            [this]() -> void { this->reject(); });
+    connect(cancelButton, &QPushButton::clicked, this, [this]() -> void { this->reject(); });
     buttonLayout->addWidget(cancelButton);
     addButton = new QPushButton("Add", this);
     connect(addButton, &QPushButton::clicked, this, [this]() -> void {
         if (syncList->selectedItems().length() > 0) {
-            this->done(
-                syncList->selectedItems().first()->data(Qt::UserRole).toInt());
+            this->done(syncList->selectedItems().first()->data(Qt::UserRole).toInt());
         }
     });
     buttonLayout->addWidget(addButton);
