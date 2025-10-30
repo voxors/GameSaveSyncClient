@@ -2,8 +2,7 @@
 #include <QFileDialog>
 #include <QHBoxLayout>
 
-PathEditableRowWidget::PathEditableRowWidget(int pathId, QWidget* parent)
-    : QWidget(parent) {
+PathEditableRowWidget::PathEditableRowWidget(int pathId, QWidget* parent) : QWidget(parent) {
     this->pathId = pathId;
     this->setAutoFillBackground(true);
 
@@ -19,9 +18,9 @@ PathEditableRowWidget::PathEditableRowWidget(int pathId, QWidget* parent)
     connect(folderDialog, &QPushButton::clicked, this, [this]() -> void {
         QWidget* parentWidget = this->parentWidget();
         QString startPath = QDir::homePath();
-        QString dir = QFileDialog::getExistingDirectory(
-            parentWidget, "Select directory", startPath,
-            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+        QString dir = QFileDialog::getExistingDirectory(parentWidget, "Select directory", startPath,
+                                                        QFileDialog::ShowDirsOnly |
+                                                            QFileDialog::DontResolveSymlinks);
         if (!dir.isEmpty()) {
             lineEdit->setText(dir);
         }

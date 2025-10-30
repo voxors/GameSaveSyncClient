@@ -18,18 +18,14 @@ DetailsViewWidget::DetailsViewWidget(QWidget* parent) : QWidget(parent) {
     pathList->setItemDelegate(new PathItemDelegate());
     auto* pathButtonLayout = new QHBoxLayout();
     forcePullButton = new QPushButton("Force Pull");
-    forcePullButton->setToolTip(
-        "Delete local save content and replace it with the remote save");
-    connect(forcePullButton, &QPushButton::clicked, this,
-            &DetailsViewWidget::forcePull);
+    forcePullButton->setToolTip("Delete local save content and replace it with the remote save");
+    connect(forcePullButton, &QPushButton::clicked, this, &DetailsViewWidget::forcePull);
     forcePullWatcher = new QFutureWatcher<void>(this);
     connect(forcePullWatcher, &QFutureWatcher<void>::finished, this,
             [this]() -> void { forcePullButton->setEnabled(true); });
     forcePushButton = new QPushButton("Force Push");
-    forcePushButton->setToolTip(
-        "Delete remote save content and replace it with the local save");
-    connect(forcePushButton, &QPushButton::clicked, this,
-            &DetailsViewWidget::forcePush);
+    forcePushButton->setToolTip("Delete remote save content and replace it with the local save");
+    connect(forcePushButton, &QPushButton::clicked, this, &DetailsViewWidget::forcePush);
     forcePushWatcher = new QFutureWatcher<void>(this);
     connect(forcePushWatcher, &QFutureWatcher<void>::finished, this,
             [this]() -> void { forcePushButton->setEnabled(true); });
@@ -92,11 +88,8 @@ void DetailsViewWidget::forcePull() {
 
     QFuture<void> future = QtConcurrent::run([maybePathList]() -> void {
         for (UtilGameSyncServer::GamePath path : maybePathList.value()) {
-            QMutexLocker locker(
-                &Status::getInstance().getLockedPathIdMutex(path.id));
-            auto result =
-                UtilGameSyncServer::getInstance().fetchLastSaveFromServer(
-                    path.id);
+            QMutexLocker locker(&Status::getInstance().getLockedPathIdMutex(path.id));
+            auto result = UtilGameSyncServer::getInstance().fetchLastSaveFromServer(path.id);
         }
     });
 
@@ -118,14 +111,11 @@ void DetailsViewWidget::forcePush() {
 
     QFuture<void> future = QtConcurrent::run([maybePathList]() -> void {
         for (UtilGameSyncServer::GamePath path : maybePathList.value()) {
-            QMutexLocker locker(
-                &Status::getInstance().getLockedPathIdMutex(path.id));
+            QMutexLocker locker(&Status::getInstance().getLockedPathIdMutex(path.id));
             std::expected<void, QString> result =
-                UtilGameSyncServer::getInstance().pushLocalSaveToServer(
-                    path.id);
+                UtilGameSyncServer::getInstance().pushLocalSaveToServer(path.id);
             if (!result.has_value())
-                qWarning() << "Error while sync Game Save to Server : " +
-                                  result.error();
+                qWarning() << "Error while sync Game Save to Server : " + result.error();
         }
     });
 

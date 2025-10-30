@@ -29,32 +29,27 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     fileMenu->addAction(quitAction);
 
     showSetupWindowAction = new QAction("&Setup", this);
-    showSetupWindowAction->setStatusTip(
-        "Change the configuration of the remote URL");
-    connect(showSetupWindowAction, &QAction::triggered, this,
-            &MainWindow::showSetupWindowDialog);
+    showSetupWindowAction->setStatusTip("Change the configuration of the remote URL");
+    connect(showSetupWindowAction, &QAction::triggered, this, &MainWindow::showSetupWindowDialog);
     fileMenu->addAction(showSetupWindowAction);
 
     syncMenu = mainMenuBar->addMenu("&Sync");
-    addGameDialogAction = new QAction(
-        QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew), "&Add new game", this);
+    addGameDialogAction =
+        new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew), "&Add new game", this);
     addGameDialogAction->setShortcut(QKeySequence::New);
     addGameDialogAction->setStatusTip("Add a new game to sync");
-    connect(addGameDialogAction, &QAction::triggered, this,
-            &MainWindow::addGameDialogOpen);
+    connect(addGameDialogAction, &QAction::triggered, this, &MainWindow::addGameDialogOpen);
     syncMenu->addAction(addGameDialogAction);
 
-    removeGameFromSyncAction = new QAction(
-        QIcon::fromTheme(QIcon::ThemeIcon::EditDelete), "&Remove game", this);
+    removeGameFromSyncAction =
+        new QAction(QIcon::fromTheme(QIcon::ThemeIcon::EditDelete), "&Remove game", this);
     removeGameFromSyncAction->setShortcut(QKeySequence::Delete);
     removeGameFromSyncAction->setStatusTip("Remove a game from the sync list");
-    connect(removeGameFromSyncAction, &QAction::triggered, this,
-            &MainWindow::removeGameFromSync);
+    connect(removeGameFromSyncAction, &QAction::triggered, this, &MainWindow::removeGameFromSync);
     syncMenu->addAction(removeGameFromSyncAction);
 
     aboutMenu = mainMenuBar->addMenu("&About");
-    aboutDialogAction = new QAction(
-        QIcon::fromTheme(QIcon::ThemeIcon::HelpAbout), "&About", this);
+    aboutDialogAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::HelpAbout), "&About", this);
     aboutDialogAction->setStatusTip("Show about dialog");
     connect(aboutDialogAction, &QAction::triggered, this, [this]() -> void {
         auto* dialog = new AboutDialog(this);
@@ -76,17 +71,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     detailsView = new DetailsViewWidget(mainSplitter);
 
     setCentralWidget(mainSplitter);
-    connect(syncList, &QListWidget::itemSelectionChanged, this,
-            [this]() -> void {
-                if (auto item = syncList->currentItem()) {
-                    const int id = item->data(Qt::UserRole).toInt();
-                    qDebug() << "Selected id:" << id;
-                    this->detailsView->setGameID(id);
-                }
-            });
+    connect(syncList, &QListWidget::itemSelectionChanged, this, [this]() -> void {
+        if (auto item = syncList->currentItem()) {
+            const int id = item->data(Qt::UserRole).toInt();
+            qDebug() << "Selected id:" << id;
+            this->detailsView->setGameID(id);
+        }
+    });
 
-    trayIcon =
-        new QSystemTrayIcon(QIcon::fromTheme("applications-system"), this);
+    trayIcon = new QSystemTrayIcon(QIcon::fromTheme("applications-system"), this);
     trayMenu = new QMenu(this);
     showAction = new QAction("Show", this);
     connect(showAction, &QAction::triggered, this, &MainWindow::showWindow);
@@ -133,20 +126,18 @@ void MainWindow::refreshFromIDFromConfig() {
 
     QList<UtilGameSyncServer::GameMetadata> gamesMetadata;
     for (auto& id : config::returnAllIds()) {
-        auto gameMetadata =
-            UtilGameSyncServer::getInstance().getGameMetadata(id);
+        auto gameMetadata = UtilGameSyncServer::getInstance().getGameMetadata(id);
 
         if (gameMetadata.has_value())
             gamesMetadata.append(gameMetadata.value());
     }
 
-    std::ranges::sort(
-        gamesMetadata,
-        [](const UtilGameSyncServer::GameMetadata& value1,
-           const UtilGameSyncServer::GameMetadata& value2) -> int {
-            return QString::compare(value1.defaultName, value2.defaultName,
-                                    Qt::CaseInsensitive) < 0;
-        });
+    std::ranges::sort(gamesMetadata,
+                      [](const UtilGameSyncServer::GameMetadata& value1,
+                         const UtilGameSyncServer::GameMetadata& value2) -> int {
+                          return QString::compare(value1.defaultName, value2.defaultName,
+                                                  Qt::CaseInsensitive) < 0;
+                      });
 
     for (const UtilGameSyncServer::GameMetadata& gameMetadata : gamesMetadata) {
         auto item = new QListWidgetItem(gameMetadata.defaultName, syncList);
@@ -165,9 +156,7 @@ void MainWindow::showWindow() {
     this->activateWindow();
 }
 
-void MainWindow::onErrorOccurred(QString msg) {
-    qWarning() << "Background sync error:" << msg;
-}
+void MainWindow::onErrorOccurred(QString msg) { qWarning() << "Background sync error:" << msg; }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
     this->hide();

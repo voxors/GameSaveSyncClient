@@ -28,8 +28,7 @@ int main(int argc, char* argv[]) {
     auto worker = new BackgroundSyncWorker;
     worker->moveToThread(workerThread);
 
-    QObject::connect(workerThread, &QThread::started, worker,
-                     &BackgroundSyncWorker::start);
+    QObject::connect(workerThread, &QThread::started, worker, &BackgroundSyncWorker::start);
 
     auto mainWindow = new MainWindow;
     QObject::connect(worker, &BackgroundSyncWorker::errorOccurred, mainWindow,

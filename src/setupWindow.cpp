@@ -51,21 +51,16 @@ SetupWindow::SetupWindow(QWidget* parent) : QDialog(parent) {
     // be fixed later, but for now enforce it from the start
     setFixedHeight(150);
 
-    connect(validateButton, &QPushButton::clicked, this,
-            &SetupWindow::validate);
-    connect(applyButton, &QPushButton::clicked, this,
-            &SetupWindow::applyConfig);
+    connect(validateButton, &QPushButton::clicked, this, &SetupWindow::validate);
+    connect(applyButton, &QPushButton::clicked, this, &SetupWindow::applyConfig);
     connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
-    connect(
-        urlEdit, &QLineEdit::textEdited, this,
-        [this](const QString& text) -> void {
-            if (!text.isEmpty() &&
-                (text.startsWith("http://") || text.startsWith("https://")) &&
-                text.endsWith(':')) {
-                portSpin->setFocus();
-                portSpin->selectAll();
-            }
-        });
+    connect(urlEdit, &QLineEdit::textEdited, this, [this](const QString& text) -> void {
+        if (!text.isEmpty() && (text.startsWith("http://") || text.startsWith("https://")) &&
+            text.endsWith(':')) {
+            portSpin->setFocus();
+            portSpin->selectAll();
+        }
+    });
 }
 
 void SetupWindow::validate() {
@@ -76,11 +71,9 @@ void SetupWindow::validate() {
         urlEdit->setToolTip("");
         applyButton->setEnabled(true);
     } else {
-        QString message =
-            "Validation failed: unable to contact fetch game endpoint.";
+        QString message = "Validation failed: unable to contact fetch game endpoint.";
         urlEdit->setToolTip(message);
-        QToolTip::showText({QCursor::pos().x() - 30, QCursor::pos().y()},
-                           message, urlEdit);
+        QToolTip::showText({QCursor::pos().x() - 30, QCursor::pos().y()}, message, urlEdit);
         applyButton->setEnabled(false);
     }
 }

@@ -13,8 +13,7 @@ int PathListModel::rowCount(const QModelIndex& parent) const {
 }
 
 bool PathListModel::isPathValid(PathItem item) const {
-    return Status::getInstance().getPathStatusById(item.id).isEmpty() &&
-           !item.configPath.isEmpty();
+    return Status::getInstance().getPathStatusById(item.id).isEmpty() && !item.configPath.isEmpty();
 }
 
 QVariant PathListModel::data(const QModelIndex& index, int role) const {
@@ -49,8 +48,7 @@ QVariant PathListModel::data(const QModelIndex& index, int role) const {
     }
 }
 
-bool PathListModel::setData(const QModelIndex& index, const QVariant& value,
-                            int role) {
+bool PathListModel::setData(const QModelIndex& index, const QVariant& value, int role) {
     if (!index.isValid() || index.row() < 0 || index.row() >= pathItems.size())
         return false;
 
@@ -70,9 +68,8 @@ bool PathListModel::setData(const QModelIndex& index, const QVariant& value,
     }
 
     if (changed) {
-        emit dataChanged(
-            index, index,
-            {Role::ConfigPathRole, Qt::BackgroundRole, Qt::ForegroundRole});
+        emit dataChanged(index, index,
+                         {Role::ConfigPathRole, Qt::BackgroundRole, Qt::ForegroundRole});
         return true;
     }
 
