@@ -58,17 +58,17 @@ void DetailsViewWidget::refresh() {
         return;
     }
 
-    std::optional<UtilGameSyncServer::GameMetadata> maybeMetadata =
+    std::expected<UtilGameSyncServer::GameMetadata, GameSaveSyncError::Error> maybeMetadata =
         UtilGameSyncServer::getInstance().getGameMetadata(gameID);
     QString gameName = maybeMetadata ? maybeMetadata->defaultName : QString{};
     gameNameLabel->setText(gameName);
 
     pathModel->loadForGame(gameID);
 
-    QList<UtilGameSyncServer::ExecutableJson> executablesJson =
-        UtilGameSyncServer::getInstance().getExecutableByGameId(gameID);
+    std::expected<QList<UtilGameSyncServer::ExecutableJson>, GameSaveSyncError::Error>
+        executablesJson = UtilGameSyncServer::getInstance().getExecutableByGameId(gameID);
     executableList->clear();
-    for (auto executableJson : executablesJson) {
+    for (auto executableJson : executablesJson.value()) {
         executableList->addItem(executableJson.executablePath);
     }
 }
@@ -78,7 +78,7 @@ void DetailsViewWidget::forcePull() {
         return;
     }
 
-    std::optional<QList<UtilGameSyncServer::GamePath>> maybePathList =
+    std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error> maybePathList =
         UtilGameSyncServer::getInstance().getPathByGameId(gameID, true);
 
     if (!maybePathList.has_value())
@@ -101,7 +101,7 @@ void DetailsViewWidget::forcePush() {
         return;
     }
 
-    std::optional<QList<UtilGameSyncServer::GamePath>> maybePathList =
+    std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error> maybePathList =
         UtilGameSyncServer::getInstance().getPathByGameId(gameID, true);
 
     if (!maybePathList.has_value())
@@ -112,10 +112,10 @@ void DetailsViewWidget::forcePush() {
     QFuture<void> future = QtConcurrent::run([maybePathList]() -> void {
         for (UtilGameSyncServer::GamePath path : maybePathList.value()) {
             QMutexLocker locker(&Status::getInstance().getLockedPathIdMutex(path.id));
-            std::expected<void, QString> result =
+            std::expected<void, GameSaveSyncError::Error> result =
                 UtilGameSyncServer::getInstance().pushLocalSaveToServer(path.id);
             if (!result.has_value())
-                qWarning() << "Error while sync Game Save to Server : " + result.error();
+                qWarning() << "Error while sync Game Save to Server : " + result.error().message;
         }
     });
 

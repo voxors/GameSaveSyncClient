@@ -91,7 +91,7 @@ void PathListModel::loadForGame(int gameID) {
         return;
     }
 
-    std::optional<QList<UtilGameSyncServer::GamePath>> maybePaths =
+    std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error> maybePaths =
         UtilGameSyncServer::getInstance().getPathByGameId(gameID);
     if (!maybePaths.has_value()) {
         endResetModel();

@@ -1,9 +1,11 @@
 #pragma once
 
+#include "error.h"
 #include <QMap>
 #include <QObject>
 #include <QString>
 #include <QTimer>
+#include <expected>
 
 class BackgroundSyncWorker : public QObject {
     Q_OBJECT
@@ -17,10 +19,10 @@ class BackgroundSyncWorker : public QObject {
 
   signals:
     void syncFinished();
-    void errorOccurred(QString);
+    void errorOccurred(GameSaveSyncError::Error);
 
   private:
     void validatePaths();
-    void syncGameSaveToServer();
-    void syncGameSaveFromServer();
+    std::expected<void, GameSaveSyncError::Error> syncGameSaveToServer();
+    std::expected<void, GameSaveSyncError::Error> syncGameSaveFromServer();
 };

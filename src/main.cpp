@@ -31,8 +31,6 @@ int main(int argc, char* argv[]) {
     QObject::connect(workerThread, &QThread::started, worker, &BackgroundSyncWorker::start);
 
     auto mainWindow = new MainWindow;
-    QObject::connect(worker, &BackgroundSyncWorker::errorOccurred, mainWindow,
-                     &MainWindow::onErrorOccurred);
 
     workerThread->start();
 
