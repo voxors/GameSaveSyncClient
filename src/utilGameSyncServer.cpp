@@ -77,8 +77,7 @@ UtilGameSyncServer::getGameMetadataList(bool forceFetch) {
             if (defaultNameJsonValue.isNull()) {
                 return std::unexpected{GameSaveSyncError::Error{
                     .type = GameSaveSyncError::Other,
-                    .message =
-                        QString("Error while parsing default_name in ") + __PRETTY_FUNCTION__}};
+                    .message = QString("Error while parsing default_name in ") + __FUNCTION__}};
             }
             QString defaultName = defaultNameJsonValue.toString();
             int id = object.value("id").toInt();
@@ -125,9 +124,9 @@ UtilGameSyncServer::getPathByGameId(int gameId, bool forceFetch) {
 
         QJsonDocument document = resultDocument.value();
         if (!document.isArray())
-            return std::unexpected{GameSaveSyncError::Error{
-                .type = GameSaveSyncError::Parsing,
-                .message = QString("Parsing error in ") + __PRETTY_FUNCTION__}};
+            return std::unexpected{
+                GameSaveSyncError::Error{.type = GameSaveSyncError::Parsing,
+                                         .message = QString("Parsing error in ") + __FUNCTION__}};
         QList<UtilGameSyncServer::GamePath> gamesPath;
         for (const QJsonValue& value : document.array()) {
             QJsonObject obj = value.toObject();
@@ -156,9 +155,9 @@ UtilGameSyncServer::getExecutableByGameId(int gameId, bool forceFetch) {
 
         QJsonDocument document = resultDocument.value();
         if (!document.isArray())
-            return std::unexpected{GameSaveSyncError::Error{
-                .type = GameSaveSyncError::Parsing,
-                .message = QString("Parsing error in ") + __PRETTY_FUNCTION__}};
+            return std::unexpected{
+                GameSaveSyncError::Error{.type = GameSaveSyncError::Parsing,
+                                         .message = QString("Parsing error in ") + __FUNCTION__}};
         QJsonArray outerArray = document.array();
         QList<UtilGameSyncServer::ExecutableJson> executablesJson;
         for (const QJsonValue& objVal : outerArray) {
@@ -194,9 +193,9 @@ UtilGameSyncServer::getSavesReferencesForPathId(int id) {
 
     QJsonDocument document = resultDocument.value();
     if (!document.isArray())
-        return std::unexpected{GameSaveSyncError::Error{.type = GameSaveSyncError::Parsing,
-                                                        .message = QString("Parsing error in ") +
-                                                                   __PRETTY_FUNCTION__}};
+        return std::unexpected{
+            GameSaveSyncError::Error{.type = GameSaveSyncError::Parsing,
+                                     .message = QString("Parsing error in ") + __FUNCTION__}};
 
     QList<UtilGameSyncServer::SaveJson> savesJson;
 
