@@ -36,6 +36,16 @@ class Status : public QObject {
         return *lockedPathId[id];
     }
 
+    bool allUnlockedPathId() {
+        QReadLocker lock(&rwLock);
+        for (auto* mutex : lockedPathId) {
+            if (!mutex->try_lock())
+                return false;
+            mutex->unlock();
+        }
+        return true;
+    }
+
   protected:
     Status() : QObject() {}
     ~Status() override { qDeleteAll(lockedPathId); }
