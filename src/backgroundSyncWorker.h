@@ -16,12 +16,14 @@ class BackgroundSyncWorker : public QObject {
   public slots:
     void start();
     void update();
+    void stop();
 
   signals:
     void syncFinished();
     void errorOccurred(GameSaveSyncError::Error);
 
   private:
+    QTimer* backgroundTimer;
     void validatePaths();
     std::expected<void, GameSaveSyncError::Error> syncGameSaveToServer();
     std::expected<void, GameSaveSyncError::Error> syncGameSaveFromServer();

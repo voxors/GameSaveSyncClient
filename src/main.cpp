@@ -2,7 +2,9 @@
 #include "config.h"
 #include "mainWindow.h"
 #include "setupWindow.h"
+#include "status.h"
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QThread>
 
 int main(int argc, char* argv[]) {
@@ -37,6 +39,18 @@ int main(int argc, char* argv[]) {
     mainWindow->show();
 
     int ret = app.exec();
+
+    worker->stop();
+
+    QElapsedTimer timer;
+    timer.start();
+    constexpr int timeoutMs = 10'000 * 10;
+    while (!Status::getInstance().allUnlockedPathId() && timer.elapsed() < timeoutMs) {
+        QThread::msleep(10);
+    }
+    if (timer.elapsed() >= timeoutMs) {
+        qWarning() << "Timeout while waiting for all path IDs to unlock.";
+    }
 
     worker->deleteLater();
     workerThread->deleteLater();
