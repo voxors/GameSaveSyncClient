@@ -41,7 +41,7 @@ class Status : public QObject {
     ~Status() override { qDeleteAll(lockedPathId); }
 
   private:
-    mutable QReadWriteLock rwLock;
+    QReadWriteLock rwLock;
     QMap<int, QString> pathStatus;
     QMap<int, QMutex*> lockedPathId;
 };

@@ -100,6 +100,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     trayIcon->setToolTip("GameSaveSyncClient");
     trayIcon->show();
 
+    connect(this, &MainWindow::connectionIssueSignal, this, &MainWindow::showConnectionError,
+            Qt::QueuedConnection);
+
     refreshFromIDFromConfig();
 }
 
@@ -128,6 +131,11 @@ void MainWindow::refreshFromIDFromConfig() {
     for (auto& id : config::returnAllIds()) {
         auto gameMetadata = UtilGameSyncServer::getInstance().getGameMetadata(id);
 
+        if (!gameMetadata) {
+            emit connectionIssueSignal(gameMetadata.error().message);
+            return;
+        }
+
         if (gameMetadata.has_value())
             gamesMetadata.append(gameMetadata.value());
     }
@@ -154,13 +162,18 @@ void MainWindow::showWindow() {
     this->show();
     this->raise();
     this->activateWindow();
-}
 
-void MainWindow::onErrorOccurred(QString msg) { qWarning() << "Background sync error:" << msg; }
+    refreshFromIDFromConfig();
+}
 
 void MainWindow::closeEvent(QCloseEvent* event) {
     this->hide();
     event->ignore();
+}
+
+void MainWindow::showConnectionError(QString message) {
+    QMessageBox::critical(this, tr("Game metadata error"), message);
+    this->close();
 }
 
 void MainWindow::showSetupWindowDialog() {

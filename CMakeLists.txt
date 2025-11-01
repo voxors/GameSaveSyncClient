@@ -48,6 +48,7 @@ add_executable(${TARGET_NAME}
     src/config.h
     src/detailsViewWidget.cpp
     src/detailsViewWidget.h
+    src/error.h
     src/main.cpp
     src/mainWindow.cpp
     src/mainWindow.h

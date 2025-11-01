@@ -22,8 +22,9 @@ void addRemoteGameListToSyncList(QList<UtilGameSyncServer::GameMetadata> gamesMe
 }
 
 AddGameDialog::AddGameDialog(QWidget* parent) : QDialog(parent) {
-    QList<UtilGameSyncServer::GameMetadata> remoteGameList =
-        UtilGameSyncServer::getInstance().getGameMetadataList();
+    std::expected<QList<UtilGameSyncServer::GameMetadata>, GameSaveSyncError::Error>
+        resultRemoteGameList = UtilGameSyncServer::getInstance().getGameMetadataList();
+    QList<UtilGameSyncServer::GameMetadata> remoteGameList = resultRemoteGameList.value();
     setMinimumSize({500, 200});
 
     syncList = new QListWidget(this);

@@ -20,6 +20,15 @@ class MainWindow : public QMainWindow {
     MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override = default;
 
+  public slots:
+    void showWindow();
+
+  signals:
+    void connectionIssueSignal(QString message);
+
+  protected:
+    void closeEvent(QCloseEvent* event) override;
+
   private:
     DetailsViewWidget* detailsView;
     QAction* aboutDialogAction;
@@ -40,14 +49,9 @@ class MainWindow : public QMainWindow {
 
     void refreshFromIDFromConfig();
 
-  public slots:
-    void onErrorOccurred(QString);
-    void showWindow();
   private slots:
     void addGameDialogOpen();
     void removeGameFromSync();
     void showSetupWindowDialog();
-
-  protected:
-    void closeEvent(QCloseEvent* event) override; // hide on close
+    void showConnectionError(QString message);
 };
