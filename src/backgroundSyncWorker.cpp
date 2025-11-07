@@ -96,7 +96,10 @@ std::expected<void, GameSaveSyncError::Error> BackgroundSyncWorker::syncGameSave
             [&](int pathId, const QString&) -> std::expected<void, GameSaveSyncError::Error> {
                 QMutexLocker locker(&Status::getInstance().getLockedPathIdMutex(pathId));
 
-                if (!shouldUploadLocalFile(pathId))
+                auto maybeShouldUpload = shouldUploadLocalFile(pathId);
+                if (!maybeShouldUpload)
+                    return std::unexpected<GameSaveSyncError::Error>{maybeShouldUpload.error()};
+                if (!maybeShouldUpload.value())
                     return std::expected<void, GameSaveSyncError::Error>{};
 
                 std::expected<void, GameSaveSyncError::Error> result =
@@ -175,7 +178,10 @@ std::expected<void, GameSaveSyncError::Error> BackgroundSyncWorker::syncGameSave
             [&](int pathId, const QString&) -> std::expected<void, GameSaveSyncError::Error> {
                 QMutexLocker locker(&Status::getInstance().getLockedPathIdMutex(pathId));
 
-                if (!shouldDownloadToLocalFile(pathId))
+                auto maybeShouldDownload = shouldDownloadToLocalFile(pathId);
+                if (!maybeShouldDownload)
+                    return std::unexpected<GameSaveSyncError::Error>{maybeShouldDownload.error()};
+                if (!maybeShouldDownload.value())
                     return std::expected<void, GameSaveSyncError::Error>{};
 
                 std::expected<UtilGameSyncServer::GameSavesReturn, GameSaveSyncError::Error>

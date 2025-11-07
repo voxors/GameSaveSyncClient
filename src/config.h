@@ -16,4 +16,5 @@ void updateUUIDForPath(int pathID, QString uuid);
 void removeUUIDForPath(int pathID);
 void updateRemoteURL(QUrl remoteURL);
 QUrl getRemoteURL();
+bool validateDbUUID(QString uuid);
 } // namespace config
