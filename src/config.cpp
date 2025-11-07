@@ -78,4 +78,17 @@ QUrl getRemoteURL() {
     return settings.value("remote/URL", QString{}).toUrl();
 }
 
+bool validateDbUUID(QString uuid) {
+    QSettings settings = config::getConfig();
+    QString configDbUuidPath("db_uuid");
+    QString configDbUuid = settings.value(configDbUuidPath, QString{}).toString();
+    if (configDbUuid.isEmpty()) {
+        settings.setValue(configDbUuidPath, uuid);
+        return true;
+    } else if (configDbUuid == uuid) {
+        return true;
+    } else
+        return false;
+}
+
 } // namespace config

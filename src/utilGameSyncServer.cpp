@@ -18,7 +18,11 @@
 #include <QTimer>
 
 std::expected<QByteArray, GameSaveSyncError::Error>
-UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint, QUrl forcedURL) {
+UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint, QUrl forcedURL, bool validateUUID) {
+    if (validateUUID) {
+        if (auto validUuid = validateDbUUID(); !validUuid)
+            return std::unexpected{validUuid.error()};
+    }
     QNetworkAccessManager manager;
     QUrl baseUrl = config::getRemoteURL().adjusted(QUrl::StripTrailingSlash);
     if (!forcedURL.isEmpty())
@@ -224,7 +228,7 @@ UtilGameSyncServer::getSavesReferencesForPathId(int id) {
     return savesJson;
 }
 
-std::expected<QString, QString>
+std::expected<QString, GameSaveSyncError::Error>
 UtilGameSyncServer::postGameSavesForPathId(int pathId,
                                            std::vector<utilFileSystem::FileHash> hashOfContent) {
     QString endpoint = "/v1/paths/" + QString::number(pathId) + "/saves/upload";
@@ -256,7 +260,8 @@ UtilGameSyncServer::postGameSavesForPathId(int pathId,
                            QVariant("form-data; name=\"file\""));
     auto file = new QFile(zipPath);
     if (!file->open(QIODevice::ReadOnly)) {
-        return std::unexpected{"Opening file failed"};
+        return std::unexpected{GameSaveSyncError::Error{.type = GameSaveSyncError::Other,
+                                                        .message = "Opening file failed"}};
     }
     httpPartFile.setBodyDevice(file);
     file->setParent(multiPart);
@@ -275,14 +280,16 @@ UtilGameSyncServer::postGameSavesForPathId(int pathId,
 
     bool success = (reply->error() == QNetworkReply::NoError);
     if (!success) {
-        return std::unexpected{"Upload failed:" + reply->errorString()};
+        return std::unexpected{
+            GameSaveSyncError::Error{.type = GameSaveSyncError::Network,
+                                     .message = "Upload failed:" + reply->errorString()}};
     }
 
     QString uuid = QString::fromUtf8(reply->readAll());
 
     reply->deleteLater();
 
-    return std::expected<QString, QString>{uuid};
+    return std::expected<QString, GameSaveSyncError::Error>{uuid};
 }
 
 std::expected<UtilGameSyncServer::GameSavesReturn, GameSaveSyncError::Error>
@@ -312,7 +319,7 @@ UtilGameSyncServer::getGameSavesForPathId(int pathId) {
         uuid = lastSave.uuid;
     }
 
-    return !save.isEmpty() || !uuid.isEmpty()
+    return !(save.isEmpty() || uuid.isEmpty())
                ? std::expected<UtilGameSyncServer::GameSavesReturn,
                                GameSaveSyncError::Error>{GameSavesReturn{.uuid = uuid,
                                                                          .data = save}}
@@ -333,7 +340,7 @@ UtilGameSyncServer::fetchLastSaveFromServer(int pathId) {
                 -> std::expected<UtilGameSyncServer::GameSavesReturn, GameSaveSyncError::Error> {
                 if (utilFileSystem::writeFileToFileSystemAtDownload(pathId, gameSave.data)) {
                     return std::expected<UtilGameSyncServer::GameSavesReturn,
-                                         GameSaveSyncError::Error>{};
+                                         GameSaveSyncError::Error>{gameSave};
                 } else {
                     return std::unexpected{GameSaveSyncError::Error{
                         .type = GameSaveSyncError::Other,
@@ -379,5 +386,31 @@ UtilGameSyncServer::pushLocalSaveToServer(int pathId) {
         return std::unexpected{GameSaveSyncError::Error{.type = GameSaveSyncError::Network,
                                                         .message = "failed to post game save"}};
     config::updateUUIDForPath(pathId, uuid.value());
+    return std::expected<void, GameSaveSyncError::Error>{};
+}
+
+std::expected<QString, GameSaveSyncError::Error> UtilGameSyncServer::fetchDbUUID() {
+    std::expected<QByteArray, GameSaveSyncError::Error> result =
+        fetchRemoteEndpoint("/v1/uuid", {}, false);
+    if (!result)
+        return std::unexpected(result.error());
+
+    QByteArray data = result.value();
+    QString uuid = QString::fromUtf8(data).trimmed();
+    return uuid;
+}
+
+std::expected<void, GameSaveSyncError::Error> UtilGameSyncServer::validateDbUUID() {
+    auto maybeUuid = fetchDbUUID();
+    if (!maybeUuid)
+        return std::unexpected{GameSaveSyncError::Error{
+            .type = GameSaveSyncError::Network,
+            .message = "Error while fetching the database uuid on the server"}};
+
+    if (!config::validateDbUUID(maybeUuid.value())) {
+        return std::unexpected{GameSaveSyncError::Error{
+            .type = GameSaveSyncError::Other,
+            .message = "The database uuid is not the same in the config as on the server"}};
+    }
     return std::expected<void, GameSaveSyncError::Error>{};
 }
