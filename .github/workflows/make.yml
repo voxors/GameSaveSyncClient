@@ -141,11 +141,12 @@ jobs:
         uses: TriPSs/conventional-changelog-action@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-git-pull: "true"
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           name: "Release ${{ steps.changelog.outputs.tag }}"
-          body: ${{ steps.changelog.outputs.changelog_text }}
+          body: ${{ steps.changelog.outputs.changelog }}
           tag_name: ${{ steps.changelog.outputs.tag }}
           files: |
             windows/*
