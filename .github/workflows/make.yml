@@ -69,6 +69,10 @@ jobs:
         with:
           name: build-artifacts-linux
           path: download/
+      - name: Rename Linux binary
+        if: ${{ success() }}
+        run: |
+          mv download/bin/Release/GameSaveSyncClient download/bin/Release/GameSaveSyncClient-Linux-x86_64
       - name: Package Linux
         if: ${{ success() }}
         uses: actions/upload-artifact@v4
