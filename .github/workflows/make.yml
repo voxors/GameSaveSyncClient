@@ -78,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: GameSaveSyncClient-Linux-x86_64
-          path: download/bin/Release/GameSaveSyncClient
+          path: download/bin/Release/GameSaveSyncClient-Linux-x86_64
 
   package-windows:
     if: startsWith(github.ref, 'refs/tags/')
