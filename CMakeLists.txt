@@ -42,6 +42,8 @@ add_executable(${TARGET_NAME}
     src/aboutDialog.h
     src/addGameDialog.cpp
     src/addGameDialog.h
+    src/backgroundServerWorker.cpp
+    src/backgroundServerWorker.h
     src/backgroundSyncWorker.cpp
     src/backgroundSyncWorker.h
     src/config.cpp
