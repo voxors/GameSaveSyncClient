@@ -122,10 +122,6 @@ jobs:
     needs: [package-windows, package-linux]
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Download windows build package
         uses: actions/download-artifact@v4
         with:
@@ -136,18 +132,9 @@ jobs:
         with:
           name: GameSaveSyncClient-Linux-x86_64
           path: linux/
-      - name: Generate Changelog
-        id: changelog
-        uses: TriPSs/conventional-changelog-action@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          skip-git-pull: "true"
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Release ${{ steps.changelog.outputs.tag }}"
-          body: ${{ steps.changelog.outputs.changelog }}
-          tag_name: ${{ steps.changelog.outputs.tag }}
           files: |
             windows/*
             linux/*
