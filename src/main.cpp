@@ -1,3 +1,4 @@
+#include "backgroundServerWorker.h"
 #include "backgroundSyncWorker.h"
 #include "config.h"
 #include "mainWindow.h"
@@ -5,6 +6,7 @@
 #include "status.h"
 #include <QApplication>
 #include <QElapsedTimer>
+#include <QLocalSocket>
 #include <QThread>
 
 int main(int argc, char* argv[]) {
@@ -29,18 +31,30 @@ int main(int argc, char* argv[]) {
     auto workerThread = new QThread;
     auto worker = new BackgroundSyncWorker;
     worker->moveToThread(workerThread);
-
     QObject::connect(workerThread, &QThread::started, worker, &BackgroundSyncWorker::start);
+
+    QLocalSocket probeSocket;
+    probeSocket.connectToServer(BackgroundServerWorker::serverName.toString());
+    if (probeSocket.waitForConnected(100)) {
+        qWarning() << "Another instance is already running. Exiting.";
+        return 0;
+    }
+    probeSocket.disconnectFromServer();
+    auto serverThread = new QThread;
+    auto* serverWorker = new BackgroundServerWorker();
+    serverWorker->moveToThread(workerThread);
+    QObject::connect(serverThread, &QThread::started, serverWorker, &BackgroundServerWorker::start);
 
     auto mainWindow = new MainWindow;
 
     workerThread->start();
+    serverThread->start();
 
     mainWindow->show();
-
     int ret = app.exec();
 
     worker->stop();
+    serverWorker->stop();
 
     QElapsedTimer timer;
     timer.start();
@@ -52,6 +66,8 @@ int main(int argc, char* argv[]) {
         qWarning() << "Timeout while waiting for all path IDs to unlock.";
     }
 
+    serverWorker->deleteLater();
+    serverThread->deleteLater();
     worker->deleteLater();
     workerThread->deleteLater();
 
