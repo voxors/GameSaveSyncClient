@@ -16,4 +16,7 @@ void BackgroundServerWorker::start() {
         return;
     }
 }
-void BackgroundServerWorker::stop() { server->close(); };
+void BackgroundServerWorker::stop() {
+    QMetaObject::invokeMethod(
+        server, [&]() -> void { this->server->close(); }, Qt::QueuedConnection);
+};

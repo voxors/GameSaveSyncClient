@@ -63,6 +63,8 @@ add_executable(${TARGET_NAME}
     src/setupWindow.cpp
     src/setupWindow.h
     src/status.h
+    src/trayIcon.cpp
+    src/trayIcon.h
     src/utilFileSystem.cpp
     src/utilFileSystem.h
     src/utilGameSyncServer.cpp

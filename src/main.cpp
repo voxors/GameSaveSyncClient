@@ -4,6 +4,7 @@
 #include "mainWindow.h"
 #include "setupWindow.h"
 #include "status.h"
+#include "trayIcon.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QLocalSocket>
@@ -46,6 +47,11 @@ int main(int argc, char* argv[]) {
     QObject::connect(serverThread, &QThread::started, serverWorker, &BackgroundServerWorker::start);
 
     auto mainWindow = new MainWindow;
+
+    auto trayIcon = new TrayIcon();
+    trayIcon->addShowMenuItem(mainWindow);
+    trayIcon->addSeparator();
+    trayIcon->addQuitMenuItem();
 
     workerThread->start();
     serverThread->start();

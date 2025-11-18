@@ -36,16 +36,13 @@ class MainWindow : public QMainWindow {
     QAction* addGameDialogAction;
     QAction* quitAction;
     QAction* removeGameFromSyncAction;
-    QAction* showAction;
     QAction* showSetupWindowAction;
     QListWidget* syncList;
     QMenu* aboutMenu;
     QMenu* fileMenu;
     QMenu* syncMenu;
-    QMenu* trayMenu;
     QMenuBar* mainMenuBar;
     QSplitter* mainSplitter;
-    QSystemTrayIcon* trayIcon;
 
     void refreshFromIDFromConfig();
 
