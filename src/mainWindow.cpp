@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     fileMenu = mainMenuBar->addMenu("&File");
     quitAction = new QAction("Quit", this);
     quitAction->setShortcut(QKeySequence::Quit);
+    connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
     fileMenu->addAction(quitAction);
 
     showSetupWindowAction = new QAction("&Setup", this);
@@ -78,27 +79,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
             this->detailsView->setGameID(id);
         }
     });
-
-    trayIcon = new QSystemTrayIcon(QIcon::fromTheme("applications-system"), this);
-    trayMenu = new QMenu(this);
-    showAction = new QAction("Show", this);
-    connect(showAction, &QAction::triggered, this, &MainWindow::showWindow);
-    connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
-
-    connect(trayIcon, &QSystemTrayIcon::activated, this,
-            [this](QSystemTrayIcon::ActivationReason reason) -> void {
-                if (reason == QSystemTrayIcon::Trigger) {
-                    this->showWindow();
-                }
-            });
-
-    trayMenu->addAction(showAction);
-    trayMenu->addSeparator();
-    trayMenu->addAction(quitAction);
-    trayIcon->setContextMenu(trayMenu);
-    trayIcon->setIcon(QIcon(":/res/icon/GameSaveSyncClientTray.svg"));
-    trayIcon->setToolTip("GameSaveSyncClient");
-    trayIcon->show();
 
     connect(this, &MainWindow::connectionIssueSignal, this, &MainWindow::showConnectionError,
             Qt::QueuedConnection);
