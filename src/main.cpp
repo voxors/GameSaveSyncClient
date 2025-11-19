@@ -50,6 +50,7 @@ int main(int argc, char* argv[]) {
 
     auto trayIcon = new TrayIcon();
     trayIcon->addShowMenuItem(mainWindow);
+    trayIcon->addShowSetupItem();
     trayIcon->addSeparator();
     trayIcon->addQuitMenuItem();
 

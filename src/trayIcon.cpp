@@ -1,4 +1,5 @@
 #include "trayIcon.h"
+#include "setupWindow.h"
 
 #include <QApplication>
 #include <QMenu>
@@ -14,14 +15,14 @@ TrayIcon::TrayIcon() {
 }
 
 void TrayIcon::addShowMenuItem(MainWindow* mainWindow) {
-    showAction = new QAction("Show");
-    trayMenu->addAction(showAction);
-    connect(showAction, &QAction::triggered, mainWindow, &MainWindow::showWindow);
+    showMainWindowAction = new QAction("Show");
+    trayMenu->addAction(showMainWindowAction);
+    connect(showMainWindowAction, &QAction::triggered, mainWindow, &MainWindow::showWindow);
 
     connect(trayIcon, &QSystemTrayIcon::activated, this,
             [&](QSystemTrayIcon::ActivationReason reason) -> void {
                 if (reason == QSystemTrayIcon::Trigger) {
-                    this->showAction->trigger();
+                    this->showMainWindowAction->trigger();
                 }
             });
 };
@@ -33,3 +34,14 @@ void TrayIcon::addQuitMenuItem() {
 }
 
 void TrayIcon::addSeparator() { trayMenu->addSeparator(); }
+
+void TrayIcon::addShowSetupItem() {
+    showSetupAction = new QAction("Setup");
+    trayMenu->addAction(showSetupAction);
+
+    connect(showSetupAction, &QAction::triggered, this, []() -> void {
+        auto setupWindowDialog = new SetupWindow();
+        setupWindowDialog->setAttribute(Qt::WA_DeleteOnClose);
+        setupWindowDialog->show();
+    });
+}
