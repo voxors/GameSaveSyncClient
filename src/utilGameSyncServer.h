@@ -75,12 +75,11 @@ class UtilGameSyncServer {
     getGameSavesForPathId(int pathId);
     std::expected<QString, GameSaveSyncError::Error>
     postGameSavesForPathId(int pathId, std::vector<utilFileSystem::FileHash> hashOfContent);
-    bool testConnection(QUrl testURL);
+    bool testConnection(QUrl testURL, QString apiToken);
     std::expected<UtilGameSyncServer::GameSavesReturn, GameSaveSyncError::Error>
     fetchLastSaveFromServer(int pathId);
     std::expected<void, GameSaveSyncError::Error> pushLocalSaveToServer(int pathId);
     std::expected<QString, GameSaveSyncError::Error> fetchDbUUID();
-
     UtilGameSyncServer(UtilGameSyncServer const&) = delete;
     UtilGameSyncServer& operator=(UtilGameSyncServer const&) = delete;
 
@@ -94,8 +93,10 @@ class UtilGameSyncServer {
     QMap<int, QList<ExecutableJson>> gameExecutableMap;
 
     std::expected<QByteArray, GameSaveSyncError::Error>
-    fetchRemoteEndpoint(QString endpoint, QUrl forcedURL = {}, bool validateUUID = true);
+    fetchRemoteEndpoint(QString endpoint, QUrl forcedURL = {}, QString forcedAPIToken = {},
+                        bool validateUUID = true);
     std::expected<QJsonDocument, GameSaveSyncError::Error>
-    fetchRemoteJSONEndpoint(QString endpoint, QUrl forcedURL = {});
+    fetchRemoteJSONEndpoint(QString endpoint, QUrl forcedURL = {}, QString forcedAPIToken = {},
+                            bool validateUUID = true);
     std::expected<void, GameSaveSyncError::Error> validateDbUUID();
 };

@@ -91,4 +91,14 @@ bool validateDbUUID(QString uuid) {
         return false;
 }
 
+void updateAPIToken(QString apiToken) {
+    QSettings settings = config::getConfig();
+    settings.setValue("remote/APIToken", apiToken);
+}
+
+QString getAPIToken() {
+    QSettings settings = config::getConfig();
+    return settings.value("remote/APIToken", QString{}).toString();
+}
+
 } // namespace config
