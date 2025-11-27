@@ -15,6 +15,7 @@
 
 SetupWindow::SetupWindow(QWidget* parent) : QDialog(parent) {
     urlEdit = new QLineEdit(this);
+    apiTokenEdit = new QLineEdit(this);
     portSpin = new QSpinBox(this);
     validateButton = new QPushButton("Validate", this);
     applyButton = new QPushButton("Apply", this);
@@ -36,6 +37,11 @@ SetupWindow::SetupWindow(QWidget* parent) : QDialog(parent) {
     hBoxLayout->addWidget(new QLabel(":"));
     hBoxLayout->addWidget(portSpin);
 
+    auto hBoxLayoutApiToken = new QHBoxLayout();
+    hBoxLayoutApiToken->addWidget(new QLabel("Api Token:"));
+    apiTokenEdit->setText(config::getAPIToken());
+    hBoxLayoutApiToken->addWidget(apiTokenEdit);
+
     buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
     buttonBox->addButton(validateButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(applyButton, QDialogButtonBox::AcceptRole);
@@ -43,8 +49,11 @@ SetupWindow::SetupWindow(QWidget* parent) : QDialog(parent) {
 
     auto mainLayout = new QVBoxLayout(this);
     mainLayout->addLayout(hBoxLayout);
+    mainLayout->addLayout(hBoxLayoutApiToken);
     mainLayout->addStretch();
     mainLayout->addWidget(buttonBox);
+
+    QWidget::setTabOrder({urlEdit, portSpin, apiTokenEdit, buttonBox});
 
     setMinimumWidth(400);
     // Qt seems to calculate the minimum to be 150 after the first resize. Could
@@ -57,6 +66,7 @@ SetupWindow::SetupWindow(QWidget* parent) : QDialog(parent) {
     connect(urlEdit, &QLineEdit::textEdited, this, [this](const QString& text) -> void {
         if (!text.isEmpty() && (text.startsWith("http://") || text.startsWith("https://")) &&
             text.endsWith(':')) {
+            this->urlEdit->setText(text.chopped(1));
             portSpin->setFocus();
             portSpin->selectAll();
         }
@@ -67,7 +77,7 @@ void SetupWindow::validate() {
     QUrl url(urlEdit->text());
     url.setPort(portSpin->value());
 
-    if (UtilGameSyncServer::getInstance().testConnection(url)) {
+    if (UtilGameSyncServer::getInstance().testConnection(url, apiTokenEdit->text())) {
         urlEdit->setToolTip("");
         applyButton->setEnabled(true);
     } else {
@@ -82,5 +92,6 @@ void SetupWindow::applyConfig() {
     QUrl url(urlEdit->text());
     url.setPort(portSpin->value());
     config::updateRemoteURL(url);
+    config::updateAPIToken(apiTokenEdit->text().trimmed());
     accept();
 }

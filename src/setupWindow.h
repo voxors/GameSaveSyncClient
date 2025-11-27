@@ -22,6 +22,7 @@ class SetupWindow : public QDialog {
 
   private:
     QLineEdit* urlEdit;
+    QLineEdit* apiTokenEdit;
     QSpinBox* portSpin;
     QPushButton* validateButton;
     QPushButton* applyButton;
