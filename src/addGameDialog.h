@@ -14,6 +14,7 @@ class AddGameDialog : public QDialog {
     ~AddGameDialog() override;
 
   private:
+    QLineEdit* filterEdit;
     QListWidget* syncList;
     QPushButton* cancelButton;
     QPushButton* addButton;

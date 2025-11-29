@@ -1,5 +1,6 @@
 #include "addGameDialog.h"
 #include "utilGameSyncServer.h"
+#include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <algorithm>
@@ -27,11 +28,23 @@ AddGameDialog::AddGameDialog(QWidget* parent) : QDialog(parent) {
     QList<UtilGameSyncServer::GameMetadata> remoteGameList = resultRemoteGameList.value();
     setMinimumSize({500, 200});
 
+    setLayout(new QVBoxLayout(this));
+
+    filterEdit = new QLineEdit(this);
+    filterEdit->setPlaceholderText("Game Filter");
+    filterEdit->setClearButtonEnabled(true);
+    connect(filterEdit, &QLineEdit::textChanged, this, [&](const QString& filter) -> void {
+        for (int row = 0; row < syncList->count(); ++row) {
+            syncList->item(row)->setHidden(
+                !syncList->item(row)->text().contains(filter, Qt::CaseInsensitive));
+        }
+    });
+    layout()->addWidget(filterEdit);
+
     syncList = new QListWidget(this);
     syncList->setSelectionMode(QAbstractItemView::SingleSelection);
     addRemoteGameListToSyncList(remoteGameList, syncList);
 
-    setLayout(new QVBoxLayout(this));
     layout()->addWidget(syncList);
 
     auto buttonLayout = new QHBoxLayout();
