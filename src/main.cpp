@@ -6,6 +6,7 @@
 #include "status.h"
 #include "trayIcon.h"
 #include <QApplication>
+#include <QCommandLineParser>
 #include <QElapsedTimer>
 #include <QLocalSocket>
 #include <QThread>
@@ -14,7 +15,15 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("GameSaveSync");
     QCoreApplication::setApplicationName("GameSaveSyncClient");
-    QCoreApplication::setApplicationVersion("0.1");
+    QCoreApplication::setApplicationVersion("0.3");
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("GameSaveSyncClient");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    QCommandLineOption minimizedOption("m", "Start Minimized");
+    parser.addOption(minimizedOption);
+    parser.process(app);
 
     app.setWindowIcon(QIcon(":/res/icon/GameSaveSyncClientTray.svg"));
 
@@ -57,7 +66,9 @@ int main(int argc, char* argv[]) {
     workerThread->start();
     serverThread->start();
 
-    mainWindow->show();
+    if (!parser.isSet(minimizedOption)) {
+        mainWindow->show();
+    }
     int ret = app.exec();
 
     worker->stop();
