@@ -1,4 +1,6 @@
 #include "detailsViewWidget.h"
+#include "autoPathFinderUtils.h"
+#include "config.h"
 #include "pathItemDelegate.h"
 #include "status.h"
 #include "utilGameSyncServer.h"
@@ -17,6 +19,9 @@ DetailsViewWidget::DetailsViewWidget(QWidget* parent) : QWidget(parent) {
     pathList->setEditTriggers(QAbstractItemView::AllEditTriggers);
     pathList->setItemDelegate(new PathItemDelegate());
     auto* pathButtonLayout = new QHBoxLayout();
+    autoPathButton = new QPushButton("Try Find");
+    autoPathButton->setToolTip("Try to find paths on the file system automatically");
+    connect(autoPathButton, &QPushButton::clicked, this, &DetailsViewWidget::autoPath);
     forcePullButton = new QPushButton("Force Pull");
     forcePullButton->setToolTip("Delete local save content and replace it with the remote save");
     connect(forcePullButton, &QPushButton::clicked, this, &DetailsViewWidget::forcePull);
@@ -29,6 +34,7 @@ DetailsViewWidget::DetailsViewWidget(QWidget* parent) : QWidget(parent) {
     forcePushWatcher = new QFutureWatcher<void>(this);
     connect(forcePushWatcher, &QFutureWatcher<void>::finished, this,
             [this]() -> void { forcePushButton->setEnabled(true); });
+    pathButtonLayout->addWidget(autoPathButton);
     pathButtonLayout->addStretch();
     pathButtonLayout->addWidget(forcePullButton);
     pathButtonLayout->addWidget(forcePushButton);
@@ -79,7 +85,7 @@ void DetailsViewWidget::forcePull() {
     }
 
     std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error> maybePathList =
-        UtilGameSyncServer::getInstance().getPathByGameId(gameID, true);
+        UtilGameSyncServer::getInstance().getPathsByGameId(gameID, true);
 
     if (!maybePathList.has_value())
         return;
@@ -102,7 +108,7 @@ void DetailsViewWidget::forcePush() {
     }
 
     std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error> maybePathList =
-        UtilGameSyncServer::getInstance().getPathByGameId(gameID, true);
+        UtilGameSyncServer::getInstance().getPathsByGameId(gameID, true);
 
     if (!maybePathList.has_value())
         return;
@@ -120,4 +126,33 @@ void DetailsViewWidget::forcePush() {
     });
 
     forcePushWatcher->setFuture(future);
+}
+
+void DetailsViewWidget::autoPath() {
+    if (gameID == 0) {
+        return;
+    }
+
+    std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error> maybePathList =
+        UtilGameSyncServer::getInstance().getPathsByGameId(gameID, true);
+
+    if (!maybePathList.has_value()) {
+        return;
+    }
+
+    std::expected<UtilGameSyncServer::GameMetadata, GameSaveSyncError::Error> maybeMetadata =
+        UtilGameSyncServer::getInstance().getGameMetadata(gameID);
+
+    if (!maybeMetadata.has_value()) {
+        return;
+    }
+
+    for (UtilGameSyncServer::GamePath path : maybePathList.value()) {
+        QString autoPath = AutoPathFinder::getAutoPath(maybeMetadata.value(), path);
+        if (utilFileSystem::validatePath(autoPath)) {
+            config::updatePath(path.id, autoPath);
+        }
+    }
+
+    refresh();
 }

@@ -76,7 +76,7 @@ forEachGamePath(int gameId, std::function<std::expected<void, GameSaveSyncError:
                                 int pathId, const QString& configPath)>
                                 callback) {
     auto& server = UtilGameSyncServer::getInstance();
-    auto maybePaths = server.getPathByGameId(gameId);
+    auto maybePaths = server.getPathsByGameId(gameId);
     if (!maybePaths)
         return std::unexpected{maybePaths.error()};
     for (const UtilGameSyncServer::GamePath& path : maybePaths.value()) {
@@ -215,7 +215,7 @@ void BackgroundSyncWorker::validatePaths() {
                                  [&](int pathId, const QString& configPath)
                                      -> std::expected<void, GameSaveSyncError::Error> {
                                      if (!utilFileSystem::validatePath(configPath))
-                                         pathStatus.insert(pathId, {"Invalid Path"});
+                                         pathStatus.insert(pathId, {"Invalid Path in Config"});
                                      else
                                          pathStatus.insert(pathId, {});
                                      return std::expected<void, GameSaveSyncError::Error>{};

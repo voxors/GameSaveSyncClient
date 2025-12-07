@@ -1,6 +1,11 @@
 words = [
+    "acf",
+    "appmanifest",
     "crc",
     "gzip",
     "miniz",
     "nolint",
+    "vdf",
+    "wunused",
+    "xdg",
 ]
