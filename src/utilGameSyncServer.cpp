@@ -124,7 +124,7 @@ UtilGameSyncServer::getGameMetadata(int gameID) {
 }
 
 std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error>
-UtilGameSyncServer::getPathByGameId(int gameId, bool forceFetch) {
+UtilGameSyncServer::getPathsByGameId(int gameId, bool forceFetch) {
     if (forceFetch || !this->gamePathMap.contains(gameId)) {
         QString endpoint = "/v1/games/" + QString::number(gameId) + "/paths";
         std::expected<QJsonDocument, GameSaveSyncError::Error> resultDocument =
@@ -275,7 +275,9 @@ UtilGameSyncServer::postGameSavesForPathId(int pathId,
     multiPart->append(httpPartHashArray);
     multiPart->append(httpPartFile);
 
+    QString apiToken = config::getAPIToken().trimmed();
     QNetworkRequest request(url);
+    request.setRawHeader("Authorization", "Bearer " + apiToken.toUtf8());
     QNetworkAccessManager manager;
     QNetworkReply* reply = manager.post(request, multiPart);
     multiPart->setParent(reply);
@@ -341,6 +343,11 @@ bool UtilGameSyncServer::testConnection(QUrl testURL, QString apiToken) {
 
 std::expected<UtilGameSyncServer::GameSavesReturn, GameSaveSyncError::Error>
 UtilGameSyncServer::fetchLastSaveFromServer(int pathId) {
+    auto path = config::getPath(pathId);
+    if (!utilFileSystem::validatePath(path)) {
+        return std::unexpected{GameSaveSyncError::Error{.type = GameSaveSyncError::Other,
+                                                        .message = "Invalid Path in Config"}};
+    }
     return getGameSavesForPathId(pathId)
         .and_then(
             [&](UtilGameSyncServer::GameSavesReturn gameSave)
@@ -387,11 +394,17 @@ UtilGameSyncServer::fetchLastSaveFromServer(int pathId) {
 
 std::expected<void, GameSaveSyncError::Error>
 UtilGameSyncServer::pushLocalSaveToServer(int pathId) {
+    auto path = config::getPath(pathId);
+    if (!utilFileSystem::validatePath(path)) {
+        return std::unexpected{GameSaveSyncError::Error{.type = GameSaveSyncError::Other,
+                                                        .message = "Invalid Path in Config"}};
+    }
     auto hashes = utilFileSystem::createZipForUpload(pathId, config::getPath(pathId));
     auto uuid = UtilGameSyncServer::getInstance().postGameSavesForPathId(pathId, hashes);
-    if (!uuid)
+    if (!uuid) {
         return std::unexpected{GameSaveSyncError::Error{.type = GameSaveSyncError::Network,
                                                         .message = "failed to post game save"}};
+    }
     config::updateUUIDForPath(pathId, uuid.value());
     return std::expected<void, GameSaveSyncError::Error>{};
 }

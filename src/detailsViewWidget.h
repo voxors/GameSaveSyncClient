@@ -19,6 +19,7 @@ class DetailsViewWidget : public QWidget {
   private slots:
     void forcePull();
     void forcePush();
+    void autoPath();
 
   private:
     int gameID = 0;
@@ -28,6 +29,7 @@ class DetailsViewWidget : public QWidget {
     QListWidget* executableList;
     QPushButton* forcePullButton;
     QPushButton* forcePushButton;
+    QPushButton* autoPathButton;
     QFutureWatcher<void>* forcePullWatcher;
     QFutureWatcher<void>* forcePushWatcher;
 };

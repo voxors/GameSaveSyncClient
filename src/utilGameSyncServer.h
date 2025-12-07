@@ -66,7 +66,7 @@ class UtilGameSyncServer {
     std::expected<UtilGameSyncServer::GameMetadata, GameSaveSyncError::Error>
     getGameMetadata(int id);
     std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error>
-    getPathByGameId(int gameId, bool forceFetch = false);
+    getPathsByGameId(int gameId, bool forceFetch = false);
     std::expected<QList<UtilGameSyncServer::ExecutableJson>, GameSaveSyncError::Error>
     getExecutableByGameId(int id, bool forceFetch = false);
     std::expected<QList<UtilGameSyncServer::SaveJson>, GameSaveSyncError::Error>

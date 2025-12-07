@@ -42,6 +42,8 @@ add_executable(${TARGET_NAME}
     src/aboutDialog.h
     src/addGameDialog.cpp
     src/addGameDialog.h
+    src/autoPathFinderUtils.cpp
+    src/autoPathFinderUtils.h
     src/backgroundServerWorker.cpp
     src/backgroundServerWorker.h
     src/backgroundSyncWorker.cpp
@@ -81,8 +83,6 @@ qt_add_resources(${TARGET_NAME} "icons"
 target_compile_definitions(${TARGET_NAME} PRIVATE
   $<$<CONFIG:Debug>:DEBUG QT_DEBUG>
   $<$<CONFIG:Release>:NDEBUG>
-  $<$<PLATFORM_ID:Windows>:PLATFORM_WINDOWS>
-  $<$<PLATFORM_ID:Linux>:PLATFORM_LINUX>
 )
 
 if(MSVC)
