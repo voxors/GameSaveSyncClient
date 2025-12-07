@@ -4,6 +4,9 @@
 #include <QFile>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
+#ifdef Q_OS_WINDOWS
+#include <QSettings>
+#endif
 
 namespace AutoPathFinder {
 
@@ -217,7 +220,8 @@ getWinLocalAppData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameM
 }
 
 std::optional<QString>
-getWinLocalAppDataLow([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata) {
+getWinLocalAppDataLow([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata,
+                      [[maybe_unused]] const UtilGameSyncServer::GamePath gamePath) {
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -226,12 +230,13 @@ getWinLocalAppDataLow([[maybe_unused]] const UtilGameSyncServer::GameMetadata ga
     return {};
 #elif defined(Q_OS_WINDOWS)
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    return getHomeFolder() + "/AppData/LocalLow";
+    return getHomeFolder(gameMetadata, gamePath) + "/AppData/LocalLow";
 #endif
 }
 
 std::optional<QString>
-getWinDocuments([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata) {
+getWinDocuments([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata,
+                [[maybe_unused]] const UtilGameSyncServer::GamePath gamePath) {
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -240,13 +245,12 @@ getWinDocuments([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMeta
     return {};
 #elif defined(Q_OS_WINDOWS)
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    return getHomeFolder() + "/Documents";
+    return getHomeFolder(gameMetadata, gamePath) + "/Documents";
 #endif
 }
 
 std::optional<QString>
 getWinPublic([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata) {
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -325,9 +329,9 @@ std::optional<QString> expandTagNoRoot(const PathTag tag,
     case winLocalAppData:
         return getWinLocalAppData(gameMetadata);
     case winLocalAppDataLow:
-        return getWinLocalAppDataLow(gameMetadata);
+        return getWinLocalAppDataLow(gameMetadata, gamePath);
     case winDocuments:
-        return getWinDocuments(gameMetadata);
+        return getWinDocuments(gameMetadata, gamePath);
     case winPublic:
         return getWinPublic(gameMetadata);
     case winProgramData:
