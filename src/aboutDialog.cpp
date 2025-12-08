@@ -12,10 +12,14 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
     layout->setContentsMargins(12, 12, 12, 12);
     layout->setSpacing(14);
 
+    auto* logoLayout = new QHBoxLayout();
     auto* logoSvgWidget = new QSvgWidget(":/res/icon/GameSaveSyncClient.svg");
     logoSvgWidget->renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
-    logoSvgWidget->setSizePolicy({QSizePolicy::Maximum, QSizePolicy::Preferred});
-    layout->addWidget(logoSvgWidget, Qt::AlignCenter);
+    logoSvgWidget->setFixedSize(200, 200);
+    logoLayout->addStretch();
+    logoLayout->addWidget(logoSvgWidget);
+    logoLayout->addStretch();
+    layout->addLayout(logoLayout);
 
     QString applicationName = QCoreApplication::applicationName();
     auto* applicationLabel = new QLabel(applicationName);
@@ -27,20 +31,59 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
     versionLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(versionLabel);
 
-    auto* licenseLabel = new QLabel(QStringLiteral("License: MIT"));
+    auto* licenseLabel = new QLabel();
+
+    QFile licenseFile(":/res/license/LICENSE.txt");
+    if (!licenseFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        licenseLabel->setText("License information not available.");
+    } else {
+        QTextStream stream(&licenseFile);
+        stream.setEncoding(QStringConverter::Utf8);
+        licenseLabel->setText(stream.readAll());
+    }
+
     licenseLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(licenseLabel);
+
+    auto* thirdPartyButton = new QPushButton(tr("Third‑Party Licenses"), this);
+    connect(thirdPartyButton, &QPushButton::clicked, this, [this]() -> void {
+        QFile file(":/res/license/Third-Party.txt");
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QMessageBox::warning(this, tr("Error"), tr("Could not open third‑party license file."));
+            return;
+        }
+        QTextStream stream(&file);
+        stream.setEncoding(QStringConverter::Utf8);
+        QString text = stream.readAll();
+
+        QDialog thirdPartyDialog(this);
+        thirdPartyDialog.setWindowTitle(tr("Third‑Party Licenses"));
+        auto* dialogLayout = new QVBoxLayout(&thirdPartyDialog);
+
+        auto* txt = new QTextEdit(&thirdPartyDialog);
+        txt->setReadOnly(true);
+        txt->setPlainText(text);
+        dialogLayout->addWidget(txt);
+
+        auto* btnBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
+        connect(btnBox, &QDialogButtonBox::accepted, &thirdPartyDialog, &QDialog::accept);
+        dialogLayout->addWidget(btnBox);
+
+        thirdPartyDialog.resize(600, 500);
+        thirdPartyDialog.exec();
+    });
 
     auto* buttonLayout = new QHBoxLayout();
     auto* closeButton = new QPushButton("Ok");
     connect(closeButton, &QPushButton::clicked, this, [&]() -> void { this->close(); });
     buttonLayout->addStretch();
+    buttonLayout->addWidget(thirdPartyButton);
     buttonLayout->addWidget(closeButton);
     layout->addLayout(buttonLayout);
 
     setLayout(layout);
 
     this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    this->setMinimumSize({250, 300});
-    this->setMaximumSize({250, 300});
+    this->setMinimumSize({650, 750});
+    this->setMaximumSize({650, 750});
 }

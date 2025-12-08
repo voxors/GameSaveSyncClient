@@ -80,6 +80,13 @@ qt_add_resources(${TARGET_NAME} "icons"
         res/icon/GameSaveSyncClientTray.svg
 )
 
+qt_add_resources(${TARGET_NAME} "license"
+    PREFIX "/"
+    FILES
+        res/license/LICENSE.txt
+        res/license/Third-Party.txt
+)
+
 target_compile_definitions(${TARGET_NAME} PRIVATE
   $<$<CONFIG:Debug>:DEBUG QT_DEBUG>
   $<$<CONFIG:Release>:NDEBUG>
