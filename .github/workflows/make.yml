@@ -76,7 +76,9 @@ jobs:
       - name: Package Linux
         run: |
           cd download
-          cpack -G RPM -G DEB -G TGZ
+          cpack --verbose -G TGZ
+          cpack --verbose -G RPM
+          cpack --verbose -G DEB
           mkdir -p artifacts
           find . -maxdepth 2 -name '*.rpm' -exec cp {} artifacts/ \;
           find . -maxdepth 2 -name '*.deb' -exec cp {} artifacts/ \;
