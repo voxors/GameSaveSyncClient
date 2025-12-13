@@ -2,6 +2,8 @@ words = [
     "acf",
     "appmanifest",
     "crc",
+    "cmake",
+    "cpack",
     "gzip",
     "miniz",
     "nolint",

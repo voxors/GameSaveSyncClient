@@ -69,16 +69,23 @@ jobs:
         with:
           name: build-artifacts-linux
           path: download/
-      - name: Rename Linux binary
-        if: ${{ success() }}
+      - name: Install rpmbuild
         run: |
-          mv download/bin/Release/GameSaveSyncClient download/bin/Release/GameSaveSyncClient-Linux-x86_64
+          sudo apt-get update
+          sudo apt-get install -y rpm
       - name: Package Linux
-        if: ${{ success() }}
+        run: |
+          cd download
+          cpack -G RPM -G DEB -G TGZ
+          mkdir -p artifacts
+          find . -maxdepth 2 -name '*.rpm' -exec cp {} artifacts/ \;
+          find . -maxdepth 2 -name '*.deb' -exec cp {} artifacts/ \;
+          find . -maxdepth 2 -name '*.tar.gz' -exec cp {} artifacts/ \;
+      - name: Upload Linux packages
         uses: actions/upload-artifact@v4
         with:
-          name: GameSaveSyncClient-Linux-x86_64
-          path: download/bin/Release/GameSaveSyncClient-Linux-x86_64
+          name: GameSaveSyncClient-Linux-Packages
+          path: download/artifacts/
 
   package-windows:
     if: startsWith(github.ref, 'refs/tags/')
@@ -130,7 +137,7 @@ jobs:
       - name: Download linux build package
         uses: actions/download-artifact@v4
         with:
-          name: GameSaveSyncClient-Linux-x86_64
+          name: GameSaveSyncClient-Linux-Packages
           path: linux/
       - name: Release
         uses: softprops/action-gh-release@v2
