@@ -1,5 +1,6 @@
 #pragma once
 
+#include "backgroundSyncWorker.h"
 #include "mainWindow.h"
 #include <QAction>
 #include <QSystemTrayIcon>
@@ -10,12 +11,15 @@ class TrayIcon : public QObject {
     void addShowMenuItem(MainWindow* mainWindow);
     void addShowSetupItem();
     void addQuitMenuItem();
+    void addStartStopItem(BackgroundSyncWorker* backgroundSyncWorker);
     void addSeparator();
 
   private:
     QSystemTrayIcon* trayIcon;
     QMenu* trayMenu;
-    QAction* showMainWindowAction;
-    QAction* showSetupAction;
-    QAction* quitAction;
+    BackgroundSyncWorker* backgroundSyncWorker;
+    QAction* startBackgroundSyncAction;
+    QAction* stopBackgroundSyncAction;
+
+    void updateSyncActions();
 };
