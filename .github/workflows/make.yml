@@ -28,11 +28,12 @@ jobs:
         run: |
           cd build
           cpack --verbose -G TGZ
+          cpack -G RPM -D CPACK_RPM_PACKAGE_REQUIRES="libQt6Core6 >= 6.2, libQt6Gui6 >= 6.2, libQt6SvgWidgets6 >= 6.2, libQt6Network6 >= 6.2, libQt6Svg6 >= 6.2"
+          for f in GameSaveSyncClient-*.rpm; do
+              mv "$f" "${f%.rpm}-opensuse.rpm"
+          done
           cpack --verbose -G RPM
-          mv GameSaveSyncClient-*.rpm GameSaveSyncClient-*-fedora.rpm
           cpack --verbose -G DEB
-          cpack -G RPM -D CPACK_RPM_PACKAGE_REQUIRES=cpack -G RPM -D CPACK_RPM_PACKAGE_REQUIRES="libQt6Core6 >= 6.2, libQt6Gui6 >= 6.2, libQt6SvgWidgets6 >= 6.2, libQt6Network6 >= 6.2, libQt6Svg6 >= 6.2"
-          mv GameSaveSyncClient-*.rpm GameSaveSyncClient-*-opensuse.rpm
           cd ..
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
