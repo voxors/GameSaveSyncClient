@@ -24,6 +24,13 @@ jobs:
       - name: Build
         run: |
           cmake --build build --config Release
+      - name: Cpack
+        run: |
+          cd build
+          cpack --verbose -G TGZ
+          cpack --verbose -G RPM
+          cpack --verbose -G DEB
+          cd ..
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -69,23 +76,16 @@ jobs:
         with:
           name: build-artifacts-linux
           path: download/
-      - name: Install rpmbuild
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y rpm
-      - name: Package Linux
+      - name: Find cpack Packages
+        if: ${{ success() }}
         run: |
           cd download
-          cmake --install . --prefix staging
-          cd staging
-          cpack --verbose -G TGZ
-          cpack --verbose -G RPM
-          cpack --verbose -G DEB
           mkdir -p artifacts
           find . -maxdepth 2 -name '*.rpm' -exec cp {} artifacts/ \;
           find . -maxdepth 2 -name '*.deb' -exec cp {} artifacts/ \;
           find . -maxdepth 2 -name '*.tar.gz' -exec cp {} artifacts/ \;
-      - name: Upload Linux packages
+      - name: Package Linux
+        if: ${{ success() }}
         uses: actions/upload-artifact@v4
         with:
           name: GameSaveSyncClient-Linux-Packages
