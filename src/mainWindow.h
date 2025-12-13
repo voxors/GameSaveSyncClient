@@ -1,5 +1,6 @@
 #pragma once
 
+#include "backgroundSyncWorker.h"
 #include "detailsViewWidget.h"
 #include <QAction>
 #include <QCloseEvent>
@@ -17,7 +18,7 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
   public:
-    MainWindow(QWidget* parent = nullptr);
+    MainWindow(BackgroundSyncWorker* worker, QWidget* parent = nullptr);
     ~MainWindow() override = default;
 
   public slots:
@@ -30,6 +31,7 @@ class MainWindow : public QMainWindow {
     void closeEvent(QCloseEvent* event) override;
 
   private:
+    BackgroundSyncWorker* backgroundWorker;
     DetailsViewWidget* detailsView;
     QAction* aboutDialogAction;
     QAction* aboutQtAction;
@@ -37,6 +39,8 @@ class MainWindow : public QMainWindow {
     QAction* quitAction;
     QAction* removeGameFromSyncAction;
     QAction* showSetupWindowAction;
+    QAction* startSyncAction;
+    QAction* stopSyncAction;
     QListWidget* syncList;
     QMenu* aboutMenu;
     QMenu* fileMenu;

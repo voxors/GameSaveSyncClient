@@ -11,7 +11,8 @@ class BackgroundSyncWorker : public QObject {
     Q_OBJECT
 
   public:
-    BackgroundSyncWorker(QObject* parent = nullptr) : QObject(parent) {}
+    BackgroundSyncWorker(QObject* parent = nullptr);
+    bool isRunning();
 
   public slots:
     void start();

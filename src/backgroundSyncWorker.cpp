@@ -9,12 +9,20 @@
 constexpr int timerInterval = 30 * 1000;
 constexpr qint64 savesMinimumInterval = static_cast<qint64>(5 * 60);
 
-void BackgroundSyncWorker::start() {
+BackgroundSyncWorker::BackgroundSyncWorker(QObject* parent) : QObject(parent) {
     backgroundTimer = new QTimer(this);
     connect(backgroundTimer, &QTimer::timeout, this, &BackgroundSyncWorker::update);
-    update();
-    backgroundTimer->setInterval(timerInterval);
-    backgroundTimer->start();
+}
+
+void BackgroundSyncWorker::start() {
+    QMetaObject::invokeMethod(
+        backgroundTimer,
+        [&]() -> void {
+            update();
+            backgroundTimer->setInterval(timerInterval);
+            backgroundTimer->start();
+        },
+        Qt::QueuedConnection);
 }
 
 std::expected<bool, GameSaveSyncError::Error> shouldUploadLocalFile(int pathId) {
@@ -245,4 +253,12 @@ void BackgroundSyncWorker::update() {
 void BackgroundSyncWorker::stop() {
     QMetaObject::invokeMethod(
         backgroundTimer, [&]() -> void { this->backgroundTimer->stop(); }, Qt::QueuedConnection);
+}
+
+bool BackgroundSyncWorker::isRunning() {
+    if (backgroundTimer != nullptr) {
+        return backgroundTimer->isActive();
+    } else {
+        return false;
+    }
 }

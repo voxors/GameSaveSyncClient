@@ -38,10 +38,11 @@ int main(int argc, char* argv[]) {
             return 0;
     }
 
-    auto workerThread = new QThread;
-    auto worker = new BackgroundSyncWorker;
-    worker->moveToThread(workerThread);
-    QObject::connect(workerThread, &QThread::started, worker, &BackgroundSyncWorker::start);
+    auto backgroundWorkerThread = new QThread;
+    auto backgroundWorker = new BackgroundSyncWorker;
+    backgroundWorker->moveToThread(backgroundWorkerThread);
+    QObject::connect(backgroundWorkerThread, &QThread::started, backgroundWorker,
+                     &BackgroundSyncWorker::start);
 
     QLocalSocket probeSocket;
     probeSocket.connectToServer(BackgroundServerWorker::serverName.toString());
@@ -52,18 +53,20 @@ int main(int argc, char* argv[]) {
     probeSocket.disconnectFromServer();
     auto serverThread = new QThread;
     auto* serverWorker = new BackgroundServerWorker();
-    serverWorker->moveToThread(workerThread);
+    serverWorker->moveToThread(backgroundWorkerThread);
     QObject::connect(serverThread, &QThread::started, serverWorker, &BackgroundServerWorker::start);
 
-    auto mainWindow = new MainWindow;
+    auto mainWindow = new MainWindow(backgroundWorker);
 
     auto trayIcon = new TrayIcon();
     trayIcon->addShowMenuItem(mainWindow);
     trayIcon->addShowSetupItem();
     trayIcon->addSeparator();
+    trayIcon->addStartStopItem(backgroundWorker);
+    trayIcon->addSeparator();
     trayIcon->addQuitMenuItem();
 
-    workerThread->start();
+    backgroundWorkerThread->start();
     serverThread->start();
 
     if (!parser.isSet(minimizedOption)) {
@@ -71,7 +74,7 @@ int main(int argc, char* argv[]) {
     }
     int ret = app.exec();
 
-    worker->stop();
+    backgroundWorker->stop();
     serverWorker->stop();
 
     QElapsedTimer timer;
@@ -84,10 +87,11 @@ int main(int argc, char* argv[]) {
         qWarning() << "Timeout while waiting for all path IDs to unlock.";
     }
 
+    trayIcon->deleteLater();
     serverWorker->deleteLater();
     serverThread->deleteLater();
-    worker->deleteLater();
-    workerThread->deleteLater();
+    backgroundWorker->deleteLater();
+    backgroundWorkerThread->deleteLater();
 
     return ret;
 }

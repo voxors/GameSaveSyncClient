@@ -20,7 +20,10 @@
 #include <QtLogging>
 #include <algorithm>
 
-MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
+MainWindow::MainWindow(BackgroundSyncWorker* backgroundWorker, QWidget* parent)
+    : QMainWindow(parent) {
+    this->backgroundWorker = backgroundWorker;
+
     mainMenuBar = new QMenuBar(this);
 
     fileMenu = mainMenuBar->addMenu("&File");
@@ -48,6 +51,36 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     removeGameFromSyncAction->setStatusTip("Remove a game from the sync list");
     connect(removeGameFromSyncAction, &QAction::triggered, this, &MainWindow::removeGameFromSync);
     syncMenu->addAction(removeGameFromSyncAction);
+
+    syncMenu->addSeparator();
+
+    startSyncAction =
+        new QAction(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart), "R&esume sync");
+    startSyncAction->setStatusTip("Resume the background sync");
+    connect(startSyncAction, &QAction::triggered, this, [&]() -> void {
+        if (!this->backgroundWorker->isRunning()) {
+            this->backgroundWorker->start();
+        }
+    });
+    stopSyncAction =
+        new QAction(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause), "&Pause sync");
+    stopSyncAction->setStatusTip("Pause the background sync");
+    connect(stopSyncAction, &QAction::triggered, this, [&]() -> void {
+        if (this->backgroundWorker->isRunning()) {
+            this->backgroundWorker->stop();
+        }
+    });
+
+    connect(syncMenu, &QMenu::aboutToShow, this, [&]() -> void {
+        if (this->backgroundWorker->isRunning()) {
+            startSyncAction->setEnabled(false);
+            stopSyncAction->setEnabled(true);
+        } else {
+            startSyncAction->setEnabled(true);
+            stopSyncAction->setEnabled(false);
+        }
+    });
+    syncMenu->addActions({startSyncAction, stopSyncAction});
 
     aboutMenu = mainMenuBar->addMenu("&About");
     aboutDialogAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::HelpAbout), "&About", this);
