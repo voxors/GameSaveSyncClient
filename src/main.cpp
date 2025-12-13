@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("GameSaveSync");
     QCoreApplication::setApplicationName("GameSaveSyncClient");
-    QCoreApplication::setApplicationVersion("0.3");
+    QCoreApplication::setApplicationVersion("0.4");
 
     QCommandLineParser parser;
     parser.setApplicationDescription("GameSaveSyncClient");
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     probeSocket.disconnectFromServer();
     auto serverThread = new QThread;
     auto* serverWorker = new BackgroundServerWorker();
-    serverWorker->moveToThread(backgroundWorkerThread);
+    serverWorker->moveToThread(serverThread);
     QObject::connect(serverThread, &QThread::started, serverWorker, &BackgroundServerWorker::start);
 
     auto mainWindow = new MainWindow(backgroundWorker);

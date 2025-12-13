@@ -21,7 +21,7 @@ The client communicates with the server via a simple JSON‑over‑HTTP API and 
 
 ## Running Requirements
 
-- **A running [GameSaveSyncServer](https://github.com/voxors/GameSaveSyncServer)** – the client needs the base URL, which is configurable in the Setup dialog the first time it starts.
+- **A running [GameSaveSyncServer](https://github.com/voxors/GameSaveSyncServer)** (Version: 0.3) – the client needs the base URL, which is configurable in the Setup dialog the first time it starts.
 
 ## Build Instructions
 
