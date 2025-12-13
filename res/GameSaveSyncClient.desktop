@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Version=1.0
+Version=0.3
 Name=GameSaveSyncClient
 Comment=Client for GameSaveSyncServer
 Exec=GameSaveSyncClient
 Terminal=false
-Categories=Utility;
+Categories=Utility;Games
 Icon=GameSaveSyncClient

@@ -7,7 +7,7 @@ set(TARGET_NAME GameSaveSyncClient)
 
 set(QT_MAJOR_VERSION 6)
 
-project(${TARGET_NAME} VERSION 0.1 DESCRIPTION "GameSaveSyncClient")
+project(${TARGET_NAME} VERSION 0.3 DESCRIPTION "GameSaveSyncClient")
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -149,3 +149,39 @@ target_link_libraries(${TARGET_NAME}
         Qt${QT_MAJOR_VERSION}::Svg
         Qt${QT_MAJOR_VERSION}::SvgWidgets
 )
+
+install(TARGETS ${TARGET_NAME}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(FILES ${CMAKE_SOURCE_DIR}/res/GameSaveSyncClient.desktop
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
+)
+install(FILES ${CMAKE_SOURCE_DIR}/res/icon/GameSaveSyncClient.svg
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
+)
+install(FILES ${CMAKE_SOURCE_DIR}/res/license/LICENSE.txt
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/licenses/${TARGET_NAME}
+)
+install(FILES ${CMAKE_SOURCE_DIR}/res/license/Third-Party.txt
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/licenses/${TARGET_NAME}
+)
+
+include(CPack)
+
+set(CPACK_PACKAGE_NAME ${TARGET_NAME})
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "GameSaveSyncClient")
+set(CPACK_PACKAGE_CONTACT "jonathan.croteau.dicaire@gmail.com")
+
+set(CPACK_GENERATOR "DEB;RPM;TGZ")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER
+    "Jonathan Croteau-Dicaire"
+    CACHE STRING "Debian package maintainer")
+
+
+set(QT6_BASE "qt6-base")
+set(QT6_SVGWIDGETS "qt6-svgwidgets")
+set(CPACK_RPM_PACKAGE_REQUIRES "${QT6_BASE},${QT6_SVGWIDGETS}")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "${QT6_BASE},${QT6_SVGWIDGETS}")
+
+set(CPACK_INSTALL_PREFIX "/usr")
