@@ -76,6 +76,8 @@ jobs:
       - name: Package Linux
         run: |
           cd download
+          cmake --install . --prefix staging
+          cd staging
           cpack --verbose -G TGZ
           cpack --verbose -G RPM
           cpack --verbose -G DEB
