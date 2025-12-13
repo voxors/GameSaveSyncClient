@@ -168,19 +168,39 @@ install(FILES ${CMAKE_SOURCE_DIR}/res/license/Third-Party.txt
 
 set(CPACK_PACKAGE_NAME ${TARGET_NAME})
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "GameSaveSyncClient")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "GameSaveSyncClient - A cross-platform Qt6 client for synchronizing game save files.")
+set(CPACK_PACKAGE_DESCRIPTION
+    "GameSaveSyncClient is a lightweight Qt6-based desktop application that helps you \
+     synchronize and back up your game save files across systems. It supports multiple \
+     platforms, provides a tray icon for background sync, and integrates with \
+     configurable game paths for easy management.")
+set(CPACK_PACKAGE_VENDOR "Jonathan Croteau-Dicaire")
 set(CPACK_PACKAGE_CONTACT "jonathan.croteau.dicaire@gmail.com")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/voxors/GameSaveSyncClient")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/res/license/LICENSE.txt")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/res/icon/GameSaveSyncClient.svg")
 
 set(CPACK_GENERATOR "DEB;RPM;TGZ")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER
-    "Jonathan Croteau-Dicaire"
-    CACHE STRING "Debian package maintainer")
 
-
-set(QT6_BASE "qt6-base")
-set(QT6_SVGWIDGETS "qt6-svgwidgets")
-set(CPACK_RPM_PACKAGE_REQUIRES "${QT6_BASE},${QT6_SVGWIDGETS}")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "${QT6_BASE},${QT6_SVGWIDGETS}")
+#DEB
+set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Jonathan Croteau-Dicaire")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS
+    "libqt6core6 (>= 6.2), libqt6gui6 (>= 6.2), libqt6widgets6 (>= 6.2), \
+     libqt6svg6 (>= 6.2), libqt6svgwidgets6 (>= 6.2)")
+#RPM
+set(CPACK_RPM_PACKAGE_LICENSE "MIT")
+set(CPACK_RPM_PACKAGE_GROUP "Applications/Utilities")
+set(CPACK_RPM_PACKAGE_RELEASE 1)
+set(CPACK_RPM_PACKAGE_REQUIRES
+    "qt6-qtbase >= 6.2, qt6-qtsvg >= 6.2")
+# For openSUSE
+# set(CPACK_RPM_PACKAGE_REQUIRES
+#   "libQt6Core6 >= 6.2, libQt6Gui6 >= 6.2, \
+#    libQt6SvgWidgets6 >= 6.2, libQt6Network6 >= 6.2, libQt6Svg6 >= 6.2")
 
 set(CPACK_INSTALL_PREFIX "/usr")
 
