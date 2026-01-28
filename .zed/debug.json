@@ -1,15 +1,10 @@
 [
   {
     "label": "Debug native binary",
-    "build": {
-      "command": "cmake --build . --config Debug",
-      "args": ["-j16"],
-      "cwd": "$ZED_WORKTREE_ROOT/build",
-      "env": { "CXX": "/usr/bin/clang-cpp" }
-    },
+    "build": "CMake Debug",
     "program": "$ZED_WORKTREE_ROOT/build/bin/Debug/GameSaveSyncClient",
     "cwd": "$ZED_WORKTREE_ROOT/build/bin/Debug/",
     "request": "launch",
-    "adapter": "CodeLLDB"
-  }
+    "adapter": "CodeLLDB",
+  },
 ]

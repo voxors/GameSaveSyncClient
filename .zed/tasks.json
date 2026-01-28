@@ -3,26 +3,32 @@
     "label": "CMake Regenerate",
     "command": "cmake -G \"Ninja Multi-Config\" ..",
     "cwd": "$ZED_WORKTREE_ROOT/build",
-    "hide": "on_success"
+    "hide": "on_success",
   },
   {
     "label": "CMake Debug",
-    "command": "cmake --build . --config Debug",
+    "command": "cmake",
     "cwd": "$ZED_WORKTREE_ROOT/build",
     "hide": "on_success",
-    "args": ["-j16"]
+    "env": {
+      "MAKEFLAGS": "-j16",
+    },
+    "args": ["--build", ".", "--config", "Debug"],
   },
   {
     "label": "CMake Release",
-    "command": "cmake --build . --config Release",
+    "command": "cmake",
     "cwd": "$ZED_WORKTREE_ROOT/build",
     "hide": "on_success",
-    "args": ["-j16"]
+    "env": {
+      "MAKEFLAGS": "-j16",
+    },
+    "args": ["--build", ".", "--config", "Release"],
   },
   {
     "label": "CMake Clean",
     "command": "cmake --build . --target clean",
     "cwd": "$ZED_WORKTREE_ROOT/build",
-    "hide": "on_success"
-  }
+    "hide": "on_success",
+  },
 ]
