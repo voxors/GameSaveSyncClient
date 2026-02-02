@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 include(FetchContent)
 cmake_policy(SET CMP0135 NEW)
+set (CMAKE_COLOR_DIAGNOSTICS ON)
 
 set(TARGET_NAME GameSaveSyncClient)
 
