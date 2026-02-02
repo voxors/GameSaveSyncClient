@@ -5,17 +5,17 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-void addRemoteGameListToSyncList(QList<UtilGameSyncServer::GameMetadata> gamesMetadata,
+void addRemoteGameListToSyncList(QList<UtilGameSyncServer::GameDefaultName> gamesMetadata,
                                  QListWidget* list) {
 
     std::ranges::sort(gamesMetadata,
-                      [](const UtilGameSyncServer::GameMetadata& value1,
-                         const UtilGameSyncServer::GameMetadata& value2) -> int {
+                      [](const UtilGameSyncServer::GameDefaultName& value1,
+                         const UtilGameSyncServer::GameDefaultName& value2) -> int {
                           return QString::compare(value1.defaultName, value2.defaultName,
                                                   Qt::CaseInsensitive) < 0;
                       });
 
-    for (const UtilGameSyncServer::GameMetadata& gameMetadata : gamesMetadata) {
+    for (const UtilGameSyncServer::GameDefaultName& gameMetadata : gamesMetadata) {
         auto item = new QListWidgetItem(gameMetadata.defaultName, list);
         item->setData(Qt::UserRole, gameMetadata.id);
         list->addItem(item);
@@ -23,9 +23,9 @@ void addRemoteGameListToSyncList(QList<UtilGameSyncServer::GameMetadata> gamesMe
 }
 
 AddGameDialog::AddGameDialog(QWidget* parent) : QDialog(parent) {
-    std::expected<QList<UtilGameSyncServer::GameMetadata>, GameSaveSyncError::Error>
-        resultRemoteGameList = UtilGameSyncServer::getInstance().getGameMetadataList();
-    QList<UtilGameSyncServer::GameMetadata> remoteGameList = resultRemoteGameList.value();
+    std::expected<QList<UtilGameSyncServer::GameDefaultName>, GameSaveSyncError::Error>
+        resultRemoteGameList = UtilGameSyncServer::getInstance().getGameDefaultNameList();
+    QList<UtilGameSyncServer::GameDefaultName> remoteGameList = resultRemoteGameList.value();
     setMinimumSize({500, 200});
 
     setLayout(new QVBoxLayout(this));

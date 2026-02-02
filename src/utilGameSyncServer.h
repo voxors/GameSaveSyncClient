@@ -17,6 +17,11 @@ class UtilGameSyncServer {
         QList<QString> knownNames;
     };
 
+    struct GameDefaultName {
+        int id;
+        QString defaultName;
+    };
+
     struct GamePath {
         int id;
         QString operatingSystem;
@@ -63,8 +68,10 @@ class UtilGameSyncServer {
 
     std::expected<QList<UtilGameSyncServer::GameMetadata>, GameSaveSyncError::Error>
     getGameMetadataList(bool forceFetch = false);
+    std::expected<QList<UtilGameSyncServer::GameDefaultName>, GameSaveSyncError::Error>
+    getGameDefaultNameList(bool forceFetch = false);
     std::expected<UtilGameSyncServer::GameMetadata, GameSaveSyncError::Error>
-    getGameMetadata(int id);
+    getGameMetadata(int gameId);
     std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error>
     getPathsByGameId(int gameId, bool forceFetch = false);
     std::expected<QList<UtilGameSyncServer::ExecutableJson>, GameSaveSyncError::Error>
@@ -89,6 +96,7 @@ class UtilGameSyncServer {
 
   private:
     QList<GameMetadata> gameMetadataList;
+    QList<GameDefaultName> gameDefaultNameList;
     QMap<int, QList<GamePath>> gamePathMap;
     QMap<int, QList<ExecutableJson>> gameExecutableMap;
 
