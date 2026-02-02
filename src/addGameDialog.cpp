@@ -5,19 +5,19 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-void addRemoteGameListToSyncList(QList<UtilGameSyncServer::GameDefaultName> gamesMetadata,
+void addRemoteGameListToSyncList(QList<UtilGameSyncServer::GameDefaultName> gamesDefaultName,
                                  QListWidget* list) {
 
-    std::ranges::sort(gamesMetadata,
+    std::ranges::sort(gamesDefaultName,
                       [](const UtilGameSyncServer::GameDefaultName& value1,
                          const UtilGameSyncServer::GameDefaultName& value2) -> int {
                           return QString::compare(value1.defaultName, value2.defaultName,
                                                   Qt::CaseInsensitive) < 0;
                       });
 
-    for (const UtilGameSyncServer::GameDefaultName& gameMetadata : gamesMetadata) {
-        auto item = new QListWidgetItem(gameMetadata.defaultName, list);
-        item->setData(Qt::UserRole, gameMetadata.id);
+    for (const UtilGameSyncServer::GameDefaultName& gameDefaultName : gamesDefaultName) {
+        auto item = new QListWidgetItem(gameDefaultName.defaultName, list);
+        item->setData(Qt::UserRole, gameDefaultName.id);
         list->addItem(item);
     }
 }
