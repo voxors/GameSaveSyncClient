@@ -306,7 +306,6 @@ UtilGameSyncServer::postGameSavesForPathId(int pathId,
 
     QString tempDir = utilFileSystem::getUploadZipLocation();
     QString zipPath = QDir(tempDir).filePath(QString::number(pathId) + ".zip");
-    qDebug() << "Zip path:" << zipPath;
 
     auto multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 

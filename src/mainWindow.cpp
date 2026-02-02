@@ -108,7 +108,6 @@ MainWindow::MainWindow(BackgroundSyncWorker* backgroundWorker, QWidget* parent)
     connect(syncList, &QListWidget::itemSelectionChanged, this, [this]() -> void {
         if (auto item = syncList->currentItem()) {
             const int id = item->data(Qt::UserRole).toInt();
-            qDebug() << "Selected id:" << id;
             this->detailsView->setGameID(id);
         }
     });
