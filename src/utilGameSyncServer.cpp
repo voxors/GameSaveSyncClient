@@ -71,9 +71,10 @@ UtilGameSyncServer::fetchRemoteJSONEndpoint(QString endpoint, QUrlQuery query, Q
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(data.value(), &parseError);
     if (parseError.error != QJsonParseError::NoError) {
-        qWarning() << "JSON parse error:" << parseError.errorString();
-        return {};
-    }
+        return std::unexpected{GameSaveSyncError::Error{
+            .type = GameSaveSyncError::Parsing,
+            .message = endpoint + " Error parsing Json:" + parseError.errorString()}};
+    };
 
     return doc;
 }
