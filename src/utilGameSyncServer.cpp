@@ -421,7 +421,7 @@ UtilGameSyncServer::getGameSavesForPathId(int pathId) {
 
 bool UtilGameSyncServer::testConnection(QUrl testURL, QString apiToken) {
     return testURL.isValid() &&
-           fetchRemoteJSONEndpoint("/v1/games", {}, testURL, apiToken, false).has_value();
+           fetchRemoteEndpoint("/v1/health", {}, testURL, apiToken, false).has_value();
 }
 
 std::expected<UtilGameSyncServer::GameSavesReturn, GameSaveSyncError::Error>
