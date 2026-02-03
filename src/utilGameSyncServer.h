@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QNetworkAccessManager>
 #include <QUrl>
+#include <QUrlQuery>
 #include <expected>
 
 class UtilGameSyncServer {
@@ -70,6 +71,8 @@ class UtilGameSyncServer {
     getGameMetadataList(bool forceFetch = false);
     std::expected<QList<UtilGameSyncServer::GameDefaultName>, GameSaveSyncError::Error>
     getGameDefaultNameList(bool forceFetch = false);
+    std::expected<QList<UtilGameSyncServer::GameDefaultName>, GameSaveSyncError::Error>
+    getGameSearchDefaultNameList(const QString query);
     std::expected<UtilGameSyncServer::GameMetadata, GameSaveSyncError::Error>
     getGameMetadata(int gameId);
     std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error>
@@ -101,10 +104,10 @@ class UtilGameSyncServer {
     QMap<int, QList<ExecutableJson>> gameExecutableMap;
 
     std::expected<QByteArray, GameSaveSyncError::Error>
-    fetchRemoteEndpoint(QString endpoint, QUrl forcedURL = {}, QString forcedAPIToken = {},
-                        bool validateUUID = true);
+    fetchRemoteEndpoint(QString endpoint, QUrlQuery query = {}, QUrl forcedURL = {},
+                        QString forcedAPIToken = {}, bool validateUUID = true);
     std::expected<QJsonDocument, GameSaveSyncError::Error>
-    fetchRemoteJSONEndpoint(QString endpoint, QUrl forcedURL = {}, QString forcedAPIToken = {},
-                            bool validateUUID = true);
+    fetchRemoteJSONEndpoint(QString endpoint, QUrlQuery query = {}, QUrl forcedURL = {},
+                            QString forcedAPIToken = {}, bool validateUUID = true);
     std::expected<void, GameSaveSyncError::Error> validateDbUUID();
 };

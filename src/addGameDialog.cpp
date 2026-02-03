@@ -2,6 +2,7 @@
 #include "utilGameSyncServer.h"
 #include <QLineEdit>
 #include <QPushButton>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <algorithm>
 
@@ -26,6 +27,7 @@ AddGameDialog::AddGameDialog(QWidget* parent) : QDialog(parent) {
     std::expected<QList<UtilGameSyncServer::GameDefaultName>, GameSaveSyncError::Error>
         resultRemoteGameList = UtilGameSyncServer::getInstance().getGameDefaultNameList();
     QList<UtilGameSyncServer::GameDefaultName> remoteGameList = resultRemoteGameList.value();
+    this->filter = {};
     setMinimumSize({500, 200});
 
     setLayout(new QVBoxLayout(this));
@@ -33,11 +35,34 @@ AddGameDialog::AddGameDialog(QWidget* parent) : QDialog(parent) {
     filterEdit = new QLineEdit(this);
     filterEdit->setPlaceholderText("Game Filter");
     filterEdit->setClearButtonEnabled(true);
-    connect(filterEdit, &QLineEdit::textChanged, this, [&](const QString& filter) -> void {
-        for (int row = 0; row < syncList->count(); ++row) {
-            syncList->item(row)->setHidden(
-                !syncList->item(row)->text().contains(filter, Qt::CaseInsensitive));
+    filterTimer = new QTimer(this);
+    filterTimer->setSingleShot(true);
+    connect(filterTimer, &QTimer::timeout, this, [&]() -> void {
+        auto selectedItems = this->syncList->selectedItems();
+        std::optional<int> previousId = std::nullopt;
+        if (!selectedItems.isEmpty()) {
+            previousId = selectedItems.at(0)->data(Qt::UserRole).toInt();
         }
+        auto result = UtilGameSyncServer::getInstance().getGameSearchDefaultNameList(this->filter);
+        if (result) {
+            syncList->clear();
+            addRemoteGameListToSyncList(result.value(), syncList);
+
+            if (previousId.has_value()) {
+                for (int i = 0; i < syncList->count(); i++) {
+                    if (syncList->item(i)->data(Qt::UserRole).toInt() == previousId.value()) {
+                        syncList->selectionModel()->setCurrentIndex(
+                            syncList->indexFromItem(syncList->item(i)),
+                            QItemSelectionModel::SelectionFlag::ClearAndSelect);
+                        break;
+                    }
+                }
+            }
+        }
+    });
+    connect(filterEdit, &QLineEdit::textChanged, this, [&](const QString& filter) -> void {
+        this->filter = filter;
+        filterTimer->start(500);
     });
     layout()->addWidget(filterEdit);
 

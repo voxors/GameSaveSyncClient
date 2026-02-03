@@ -18,4 +18,6 @@ class AddGameDialog : public QDialog {
     QListWidget* syncList;
     QPushButton* cancelButton;
     QPushButton* addButton;
+    QTimer* filterTimer;
+    QString filter;
 };
