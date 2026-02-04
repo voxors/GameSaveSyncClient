@@ -73,6 +73,7 @@ AddGameDialog::AddGameDialog(QWidget* parent) : QDialog(parent) {
     layout()->addWidget(syncList);
 
     auto buttonLayout = new QHBoxLayout();
+    buttonLayout->setSpacing(5);
     buttonLayout->addStretch();
     cancelButton = new QPushButton("Cancel", this);
     connect(cancelButton, &QPushButton::clicked, this, [this]() -> void { this->reject(); });
