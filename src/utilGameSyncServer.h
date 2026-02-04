@@ -16,6 +16,10 @@ class UtilGameSyncServer {
         QString defaultName;
         QString steamAppId;
         QList<QString> knownNames;
+        std::optional<QString> installDir;
+
+        static std::expected<UtilGameSyncServer::GameMetadata, GameSaveSyncError::Error>
+        gameMetadataFromJson(QJsonObject object);
     };
 
     struct GameDefaultName {
