@@ -17,9 +17,37 @@
 #include <QThread>
 #include <QTimer>
 
+std::expected<UtilGameSyncServer::GameMetadata, GameSaveSyncError::Error>
+UtilGameSyncServer::GameMetadata::gameMetadataFromJson(QJsonObject object) {
+    auto defaultNameJsonValue = object.value("default_name");
+    if (defaultNameJsonValue.isNull()) {
+        return std::unexpected{GameSaveSyncError::Error{
+            .type = GameSaveSyncError::Other,
+            .message = QString("Error while parsing default_name in ") + __FUNCTION__}};
+    }
+    QString defaultName = defaultNameJsonValue.toString();
+    int id = object.value("id").toInt();
+    QString steamAppId = object.value("steam_appid").toString();
+
+    std::optional<QString> installDir = std::nullopt;
+    if (object.contains("install_dir"))
+        installDir = object.value("install_dir").toString();
+
+    QList<QString> knowNames;
+    for (auto knowName : object.value("known_name").toArray()) {
+        knowNames.append(knowName.toString());
+    }
+
+    return UtilGameSyncServer::GameMetadata{.id = id,
+                                            .defaultName = defaultName,
+                                            .steamAppId = steamAppId,
+                                            .knownNames = knowNames,
+                                            .installDir = installDir};
+}
+
 std::expected<QByteArray, GameSaveSyncError::Error>
-UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint, QUrl forcedURL, QString forcedAPIToken,
-                                        bool validateUUID) {
+UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint, QUrlQuery query, QUrl forcedURL,
+                                        QString forcedAPIToken, bool validateUUID) {
     if (validateUUID) {
         if (auto validUuid = validateDbUUID(); !validUuid)
             return std::unexpected{validUuid.error()};
@@ -32,6 +60,7 @@ UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint, QUrl forcedURL, QStrin
     if (!forcedAPIToken.isEmpty())
         apiToken = forcedAPIToken.trimmed();
     baseUrl.setPath(baseUrl.path() + endpoint);
+    baseUrl.setQuery(query);
     QNetworkRequest request(baseUrl);
     request.setRawHeader("Authorization", "Bearer " + apiToken.toUtf8());
     QNetworkReply* reply = manager.get(request);
@@ -42,9 +71,16 @@ UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint, QUrl forcedURL, QStrin
 
     if (reply->error() != QNetworkReply::NoError) {
         reply->deleteLater();
-        return std::unexpected{
-            GameSaveSyncError::Error{.type = GameSaveSyncError::Network,
-                                     .message = "Error fetching endpoint:" + reply->errorString()}};
+        switch (reply->error()) {
+        case QNetworkReply::ContentNotFoundError:
+            return std::unexpected{GameSaveSyncError::Error{
+                .type = GameSaveSyncError::NotFound,
+                .message = endpoint + " Error fetching endpoint:" + reply->errorString()}};
+        default:
+            return std::unexpected{GameSaveSyncError::Error{
+                .type = GameSaveSyncError::Network,
+                .message = endpoint + " Error fetching endpoint:" + reply->errorString()}};
+        }
     }
 
     QByteArray data = reply->readAll();
@@ -54,18 +90,19 @@ UtilGameSyncServer::fetchRemoteEndpoint(QString endpoint, QUrl forcedURL, QStrin
 }
 
 std::expected<QJsonDocument, GameSaveSyncError::Error>
-UtilGameSyncServer::fetchRemoteJSONEndpoint(QString endpoint, QUrl forcedURL,
+UtilGameSyncServer::fetchRemoteJSONEndpoint(QString endpoint, QUrlQuery query, QUrl forcedURL,
                                             QString forcedAPIToken, bool validateUUID) {
-    auto data = fetchRemoteEndpoint(endpoint, forcedURL, forcedAPIToken, validateUUID);
+    auto data = fetchRemoteEndpoint(endpoint, query, forcedURL, forcedAPIToken, validateUUID);
     if (!data)
         return std::unexpected{data.error()};
 
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(data.value(), &parseError);
     if (parseError.error != QJsonParseError::NoError) {
-        qWarning() << "JSON parse error:" << parseError.errorString();
-        return {};
-    }
+        return std::unexpected{GameSaveSyncError::Error{
+            .type = GameSaveSyncError::Parsing,
+            .message = endpoint + " Error parsing Json:" + parseError.errorString()}};
+    };
 
     return doc;
 }
@@ -82,6 +119,29 @@ UtilGameSyncServer::getGameMetadataList(bool forceFetch) {
         QJsonArray outerArray = resultDocument.value().array();
         for (const QJsonValue& innerVal : outerArray) {
             QJsonObject object = innerVal.toObject();
+            auto maybeGameMetadata = GameMetadata::gameMetadataFromJson(object);
+            if (maybeGameMetadata.has_value())
+                gamesMetadata.push_back(maybeGameMetadata.value());
+            else
+                return std::unexpected<GameSaveSyncError::Error>{maybeGameMetadata.error()};
+        }
+        gameMetadataList = gamesMetadata;
+    }
+    return gameMetadataList;
+}
+
+std::expected<QList<UtilGameSyncServer::GameDefaultName>, GameSaveSyncError::Error>
+UtilGameSyncServer::getGameDefaultNameList(bool forceFetch) {
+    if (forceFetch || gameDefaultNameList.isEmpty()) {
+        std::expected<QJsonDocument, GameSaveSyncError::Error> resultDocument =
+            fetchRemoteJSONEndpoint("/v1/games/default_name");
+        if (!resultDocument)
+            return std::unexpected{resultDocument.error()};
+        QList<UtilGameSyncServer::GameDefaultName> gamesDefaultName;
+
+        QJsonArray outerArray = resultDocument.value().array();
+        for (const QJsonValue& innerVal : outerArray) {
+            QJsonObject object = innerVal.toObject();
 
             auto defaultNameJsonValue = object.value("default_name");
             if (defaultNameJsonValue.isNull()) {
@@ -91,36 +151,61 @@ UtilGameSyncServer::getGameMetadataList(bool forceFetch) {
             }
             QString defaultName = defaultNameJsonValue.toString();
             int id = object.value("id").toInt();
-            QString steamAppId = object.value("steam_appid").toString();
 
-            QList<QString> knowNames;
-            for (auto knowName : object.value("known_name").toArray()) {
-                knowNames.append(knowName.toString());
-            }
-
-            gamesMetadata.push_back({.id = id,
-                                     .defaultName = defaultName,
-                                     .steamAppId = steamAppId,
-                                     .knownNames = knowNames});
+            gamesDefaultName.push_back({
+                .id = id,
+                .defaultName = defaultName,
+            });
         }
-        gameMetadataList = gamesMetadata;
+        gameDefaultNameList = gamesDefaultName;
     }
-    return gameMetadataList;
+    return gameDefaultNameList;
+}
+
+std::expected<QList<UtilGameSyncServer::GameDefaultName>, GameSaveSyncError::Error>
+UtilGameSyncServer::getGameSearchDefaultNameList(QString query) {
+    std::expected<QJsonDocument, GameSaveSyncError::Error> resultDocument =
+        fetchRemoteJSONEndpoint("/v1/games/search", QUrlQuery({std::pair("name", query)}));
+    if (!resultDocument)
+        return std::unexpected{resultDocument.error()};
+    QList<UtilGameSyncServer::GameDefaultName> gamesDefaultName;
+
+    QJsonArray outerArray = resultDocument.value().array();
+    for (const QJsonValue& innerVal : outerArray) {
+        QJsonObject object = innerVal.toObject();
+
+        auto defaultNameJsonValue = object.value("default_name");
+        if (defaultNameJsonValue.isNull()) {
+            return std::unexpected{GameSaveSyncError::Error{
+                .type = GameSaveSyncError::Other,
+                .message = QString("Error while parsing default_name in ") + __FUNCTION__}};
+        }
+        QString defaultName = defaultNameJsonValue.toString();
+        int id = object.value("id").toInt();
+
+        gamesDefaultName.push_back({
+            .id = id,
+            .defaultName = defaultName,
+        });
+    }
+    return gamesDefaultName;
 }
 
 std::expected<UtilGameSyncServer::GameMetadata, GameSaveSyncError::Error>
-UtilGameSyncServer::getGameMetadata(int gameID) {
-    auto gameMetadataList = getGameMetadataList();
-    if (!gameMetadataList)
-        return std::unexpected{gameMetadataList.error()};
-    for (const UtilGameSyncServer::GameMetadata& gameMetadata : gameMetadataList.value()) {
-        if (gameID == gameMetadata.id) {
-            return gameMetadata;
-        }
-    }
-    return std::unexpected{GameSaveSyncError::Error{
-        .type = GameSaveSyncError::NotFound,
-        .message = "GameMetadata : " + QString::number(gameID) + " not found"}};
+UtilGameSyncServer::getGameMetadata(int gameId) {
+    QString endpoint = "/v1/games/" + QString::number(gameId);
+    std::expected<QJsonDocument, GameSaveSyncError::Error> resultDocument =
+        fetchRemoteJSONEndpoint(endpoint);
+    if (!resultDocument)
+        return std::unexpected{resultDocument.error()};
+
+    QJsonDocument document = resultDocument.value();
+    QJsonObject object = document.object();
+    auto maybeGameMetadata = GameMetadata::gameMetadataFromJson(object);
+    if (maybeGameMetadata.has_value())
+        return maybeGameMetadata.value();
+    else
+        return std::unexpected<GameSaveSyncError::Error>{maybeGameMetadata.error()};
 }
 
 std::expected<QList<UtilGameSyncServer::GamePath>, GameSaveSyncError::Error>
@@ -252,7 +337,6 @@ UtilGameSyncServer::postGameSavesForPathId(int pathId,
 
     QString tempDir = utilFileSystem::getUploadZipLocation();
     QString zipPath = QDir(tempDir).filePath(QString::number(pathId) + ".zip");
-    qDebug() << "Zip path:" << zipPath;
 
     auto multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 
@@ -338,7 +422,7 @@ UtilGameSyncServer::getGameSavesForPathId(int pathId) {
 
 bool UtilGameSyncServer::testConnection(QUrl testURL, QString apiToken) {
     return testURL.isValid() &&
-           fetchRemoteJSONEndpoint("/v1/games", testURL, apiToken, false).has_value();
+           fetchRemoteEndpoint("/v1/health", {}, testURL, apiToken, false).has_value();
 }
 
 std::expected<UtilGameSyncServer::GameSavesReturn, GameSaveSyncError::Error>
@@ -411,7 +495,7 @@ UtilGameSyncServer::pushLocalSaveToServer(int pathId) {
 
 std::expected<QString, GameSaveSyncError::Error> UtilGameSyncServer::fetchDbUUID() {
     std::expected<QByteArray, GameSaveSyncError::Error> result =
-        fetchRemoteEndpoint("/v1/uuid", {}, {}, false);
+        fetchRemoteEndpoint("/v1/uuid", {}, {}, {}, false);
     if (!result)
         return std::unexpected(result.error());
 

@@ -129,7 +129,8 @@ std::optional<QString> getWineBasePath(const UtilGameSyncServer::GameMetadata ga
 }
 #endif
 
-QList<QString> getAllRootExpand([[maybe_unused]] const UtilGameSyncServer::GamePath gamePath) {
+QList<QString> getAllRootExpand([[maybe_unused]] const UtilGameSyncServer::GamePath gamePath,
+                                const UtilGameSyncServer::GameMetadata) {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 #ifdef Q_OS_LINUX
     if (gamePath.operatingSystem == UtilGameSyncServer::linuxOS) {
@@ -139,8 +140,10 @@ QList<QString> getAllRootExpand([[maybe_unused]] const UtilGameSyncServer::GameP
         return {};
     }
 #elif defined(Q_OS_WINDOWS)
-    QString programFile = env.value("PROGRAMFILES(X86)");
-    return {programFile + "/Steam/steamapps/common/"};
+    QString programFileX86 = env.value("PROGRAMFILES(X86)");
+    QString programFile = env.value("PROGRAMFILES");
+    return {programFile, programFile + "/Steam/steamapps/common/", programFileX86,
+            programFileX86 + "/Steam/steamapps/common/"};
 #endif
 }
 
@@ -314,8 +317,7 @@ std::optional<QString> expandTagNoRoot(const PathTag tag,
                                        const UtilGameSyncServer::GamePath gamePath) {
     switch (tag) {
     case game:
-    case base:
-        return {};
+        return gameMetadata.installDir;
     case home:
         return getHomeFolder(gameMetadata, gamePath);
     case storeGameId:
@@ -351,6 +353,8 @@ QString getAutoPath(const UtilGameSyncServer::GameMetadata gameMetadata,
                     const UtilGameSyncServer::GamePath gamePath) {
     QString newPath = gamePath.path;
 
+    newPath.replace("<base>", "<root>/<game>");
+
     QRegularExpression regex("<[a-zA-Z]*>");
     for (const QRegularExpressionMatch& match : regex.globalMatch(gamePath.path)) {
         auto tag = tagListMap.constFind(match.capturedTexts().constFirst()).value();
@@ -360,7 +364,7 @@ QString getAutoPath(const UtilGameSyncServer::GameMetadata gameMetadata,
     }
 
     if (newPath.contains("<root>")) {
-        for (auto roots : getAllRootExpand(gamePath)) {
+        for (auto roots : getAllRootExpand(gamePath, gameMetadata)) {
             QString pathTry = newPath;
             pathTry.replace("<root>", roots);
             if (utilFileSystem::validatePath(pathTry)) {
