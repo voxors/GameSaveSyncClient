@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Version=0.4
+Version=0.5
 Name=GameSaveSyncClient
 Comment=Client for GameSaveSyncServer
 Exec=GameSaveSyncClient

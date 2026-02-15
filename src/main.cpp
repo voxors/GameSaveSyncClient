@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("GameSaveSync");
     QCoreApplication::setApplicationName("GameSaveSyncClient");
-    QCoreApplication::setApplicationVersion("0.4");
+    QCoreApplication::setApplicationVersion("0.5");
 
     QCommandLineParser parser;
     parser.setApplicationDescription("GameSaveSyncClient");
