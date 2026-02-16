@@ -29,7 +29,7 @@ static const QMap<QString, PathTag> tagListMap = {
     {"<xdgConfig>", xdgConfig},
 };
 
-std::optional<QString> getSteamConfigFolder() {
+auto getSteamConfigFolder() -> std::optional<QString> {
 #ifdef Q_OS_LINUX
     return QDir::homePath() + "/.local/share/Steam/config/libraryfolders.vdf";
 #elif defined(Q_OS_WINDOWS)
@@ -40,7 +40,8 @@ std::optional<QString> getSteamConfigFolder() {
 #endif
 }
 
-std::optional<QString> getGameLibraryFolder(const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getGameLibraryFolder(const UtilGameSyncServer::GameMetadata gameMetadata)
+    -> std::optional<QString> {
     if (gameMetadata.steamAppId.isEmpty()) {
         return std::nullopt;
     }
@@ -80,7 +81,8 @@ std::optional<QString> getGameLibraryFolder(const UtilGameSyncServer::GameMetada
     return std::nullopt;
 }
 
-std::optional<QString> getAppManifestVDFPath(const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getAppManifestVDFPath(const UtilGameSyncServer::GameMetadata gameMetadata)
+    -> std::optional<QString> {
     auto maybeGameLib = getGameLibraryFolder(gameMetadata);
     if (maybeGameLib.has_value()) {
         QString appManifestFile = QString("appmanifest_%1.acf").arg(gameMetadata.steamAppId);
@@ -92,7 +94,8 @@ std::optional<QString> getAppManifestVDFPath(const UtilGameSyncServer::GameMetad
     return std::nullopt;
 }
 
-std::optional<QString> getSteamStoreUserID(const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getSteamStoreUserID(const UtilGameSyncServer::GameMetadata gameMetadata)
+    -> std::optional<QString> {
     auto maybeAppManifestVDF = getAppManifestVDFPath(gameMetadata);
     if (maybeAppManifestVDF.has_value()) {
         QFile file(maybeAppManifestVDF.value());
@@ -115,7 +118,8 @@ std::optional<QString> getSteamStoreUserID(const UtilGameSyncServer::GameMetadat
 }
 
 #ifdef Q_OS_LINUX
-std::optional<QString> getWineBasePath(const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getWineBasePath(const UtilGameSyncServer::GameMetadata gameMetadata)
+    -> std::optional<QString> {
     auto maybeGameLib = getGameLibraryFolder(gameMetadata);
     if (maybeGameLib.has_value()) {
         QString wineBasePath =
@@ -129,8 +133,8 @@ std::optional<QString> getWineBasePath(const UtilGameSyncServer::GameMetadata ga
 }
 #endif
 
-QList<QString> getAllRootExpand([[maybe_unused]] const UtilGameSyncServer::GamePath gamePath,
-                                const UtilGameSyncServer::GameMetadata) {
+auto getAllRootExpand([[maybe_unused]] const UtilGameSyncServer::GamePath gamePath,
+                      const UtilGameSyncServer::GameMetadata) -> QList<QString> {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 #ifdef Q_OS_LINUX
     if (gamePath.operatingSystem == UtilGameSyncServer::linuxOS) {
@@ -147,8 +151,8 @@ QList<QString> getAllRootExpand([[maybe_unused]] const UtilGameSyncServer::GameP
 #endif
 }
 
-QString getHomeFolder([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata,
-                      [[maybe_unused]] const UtilGameSyncServer::GamePath gamePath) {
+auto getHomeFolder([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata,
+                   [[maybe_unused]] const UtilGameSyncServer::GamePath gamePath) -> QString {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 #ifdef Q_OS_LINUX
     if (gamePath.operatingSystem == UtilGameSyncServer::linuxOS) {
@@ -167,21 +171,22 @@ QString getHomeFolder([[maybe_unused]] const UtilGameSyncServer::GameMetadata ga
 #endif
 }
 
-std::optional<QString> getStoreGameId(const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getStoreGameId(const UtilGameSyncServer::GameMetadata gameMetadata) -> std::optional<QString> {
     if (!gameMetadata.steamAppId.isEmpty()) {
         return gameMetadata.steamAppId;
     }
     return {};
 }
 
-std::optional<QString> getStoreUserId(const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getStoreUserId(const UtilGameSyncServer::GameMetadata gameMetadata) -> std::optional<QString> {
     if (!gameMetadata.steamAppId.isEmpty()) {
         return getSteamStoreUserID(gameMetadata);
     }
     return {};
 }
 
-std::optional<QString> getOsUserName([[maybe_unused]] const UtilGameSyncServer::GamePath gamePath) {
+auto getOsUserName([[maybe_unused]] const UtilGameSyncServer::GamePath gamePath)
+    -> std::optional<QString> {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 #ifdef Q_OS_LINUX
     if (gamePath.operatingSystem == UtilGameSyncServer::linuxOS) {
@@ -194,8 +199,8 @@ std::optional<QString> getOsUserName([[maybe_unused]] const UtilGameSyncServer::
 #endif
 }
 
-std::optional<QString>
-getWinAppData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getWinAppData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata)
+    -> std::optional<QString> {
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -208,8 +213,8 @@ getWinAppData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetada
 #endif
 }
 
-std::optional<QString>
-getWinLocalAppData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getWinLocalAppData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata)
+    -> std::optional<QString> {
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -222,9 +227,9 @@ getWinLocalAppData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameM
 #endif
 }
 
-std::optional<QString>
-getWinLocalAppDataLow([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata,
-                      [[maybe_unused]] const UtilGameSyncServer::GamePath gamePath) {
+auto getWinLocalAppDataLow([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata,
+                           [[maybe_unused]] const UtilGameSyncServer::GamePath gamePath)
+    -> std::optional<QString> {
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -237,9 +242,9 @@ getWinLocalAppDataLow([[maybe_unused]] const UtilGameSyncServer::GameMetadata ga
 #endif
 }
 
-std::optional<QString>
-getWinDocuments([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata,
-                [[maybe_unused]] const UtilGameSyncServer::GamePath gamePath) {
+auto getWinDocuments([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata,
+                     [[maybe_unused]] const UtilGameSyncServer::GamePath gamePath)
+    -> std::optional<QString> {
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -252,8 +257,8 @@ getWinDocuments([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMeta
 #endif
 }
 
-std::optional<QString>
-getWinPublic([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getWinPublic([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata)
+    -> std::optional<QString> {
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -266,8 +271,8 @@ getWinPublic([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadat
 #endif
 }
 
-std::optional<QString>
-getWinProgramData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getWinProgramData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata)
+    -> std::optional<QString> {
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -280,8 +285,8 @@ getWinProgramData([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMe
 #endif
 }
 
-std::optional<QString>
-getWinDir([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata) {
+auto getWinDir([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata)
+    -> std::optional<QString> {
 #ifdef Q_OS_LINUX
     auto winePath = getWineBasePath(gameMetadata);
     if (winePath.has_value()) {
@@ -294,7 +299,7 @@ getWinDir([[maybe_unused]] const UtilGameSyncServer::GameMetadata gameMetadata) 
 #endif
 }
 
-std::optional<QString> getXdgData() {
+auto getXdgData() -> std::optional<QString> {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 #ifdef Q_OS_LINUX
     return env.value("XDG_DATA_HOME");
@@ -303,7 +308,7 @@ std::optional<QString> getXdgData() {
 #endif
 }
 
-std::optional<QString> getXdgConfig() {
+auto getXdgConfig() -> std::optional<QString> {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 #ifdef Q_OS_LINUX
     return env.value("XDG_CONFIG_HOME");
@@ -312,9 +317,8 @@ std::optional<QString> getXdgConfig() {
 #endif
 }
 
-std::optional<QString> expandTagNoRoot(const PathTag tag,
-                                       const UtilGameSyncServer::GameMetadata gameMetadata,
-                                       const UtilGameSyncServer::GamePath gamePath) {
+auto expandTagNoRoot(const PathTag tag, const UtilGameSyncServer::GameMetadata gameMetadata,
+                     const UtilGameSyncServer::GamePath gamePath) -> std::optional<QString> {
     switch (tag) {
     case game:
         return gameMetadata.installDir;
@@ -349,8 +353,8 @@ std::optional<QString> expandTagNoRoot(const PathTag tag,
     }
 }
 
-QString getAutoPath(const UtilGameSyncServer::GameMetadata gameMetadata,
-                    const UtilGameSyncServer::GamePath gamePath) {
+auto getAutoPath(const UtilGameSyncServer::GameMetadata gameMetadata,
+                 const UtilGameSyncServer::GamePath gamePath) -> QString {
     QString newPath = gamePath.path;
 
     newPath.replace("<base>", "<root>/<game>");

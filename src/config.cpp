@@ -24,7 +24,7 @@ void removeId(int idToRemove) {
     }
 }
 
-QList<int> returnAllIds() {
+auto returnAllIds() -> QList<int> {
     QSettings settings = config::getConfig();
     QVariantList ids = settings.value("ids").toList();
     QList<int> idList;
@@ -34,9 +34,9 @@ QList<int> returnAllIds() {
     return idList;
 }
 
-QString getPathKey(int pathID) { return "Path: " + QString::number(pathID); }
-QString getPathStringKey(int pathID) { return getPathKey(pathID) + "/path"; }
-QString getPathUUIDKey(int pathID) { return getPathKey(pathID) + "/last_save"; }
+auto getPathKey(int pathID) -> QString { return "Path: " + QString::number(pathID); }
+auto getPathStringKey(int pathID) -> QString { return getPathKey(pathID) + "/path"; }
+auto getPathUUIDKey(int pathID) -> QString { return getPathKey(pathID) + "/last_save"; }
 
 void updatePath(int pathID, QString path) {
     QSettings settings = config::getConfig();
@@ -48,12 +48,12 @@ void removePath(int pathID) {
     settings.remove(getPathStringKey(pathID));
 }
 
-QString getPath(int pathID) {
+auto getPath(int pathID) -> QString {
     QSettings settings = config::getConfig();
     return settings.value(getPathStringKey(pathID), QString{}).toString();
 }
 
-QString getUUIDForPath(int pathID) {
+auto getUUIDForPath(int pathID) -> QString {
     QSettings settings = config::getConfig();
     return settings.value(getPathUUIDKey(pathID), QString{}).toString();
 }
@@ -73,12 +73,12 @@ void updateRemoteURL(QUrl remoteURL) {
     settings.setValue("remote/URL", remoteURL);
 }
 
-QUrl getRemoteURL() {
+auto getRemoteURL() -> QUrl {
     QSettings settings = config::getConfig();
     return settings.value("remote/URL", QString{}).toUrl();
 }
 
-bool validateDbUUID(QString uuid) {
+auto validateDbUUID(QString uuid) -> bool {
     QSettings settings = config::getConfig();
     QString configDbUuidPath("db_uuid");
     QString configDbUuid = settings.value(configDbUuidPath, QString{}).toString();
@@ -96,7 +96,7 @@ void updateAPIToken(QString apiToken) {
     settings.setValue("remote/APIToken", apiToken);
 }
 
-QString getAPIToken() {
+auto getAPIToken() -> QString {
     QSettings settings = config::getConfig();
     return settings.value("remote/APIToken", QString{}).toString();
 }

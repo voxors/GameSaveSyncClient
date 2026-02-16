@@ -6,17 +6,17 @@
 
 PathListModel::PathListModel(QObject* parent) : QAbstractListModel(parent) {}
 
-int PathListModel::rowCount(const QModelIndex& parent) const {
+auto PathListModel::rowCount(const QModelIndex& parent) const -> int {
     if (parent.isValid())
         return 0;
     return pathItems.size(); // NOLINT
 }
 
-bool PathListModel::isPathValid(PathItem item) const {
+auto PathListModel::isPathValid(PathItem item) const -> bool {
     return Status::getInstance().getPathStatusById(item.id).isEmpty() && !item.configPath.isEmpty();
 }
 
-QVariant PathListModel::data(const QModelIndex& index, int role) const {
+auto PathListModel::data(const QModelIndex& index, int role) const -> QVariant {
     if (!index.isValid() || index.row() < 0 || index.row() >= pathItems.size())
         return {};
 
@@ -48,7 +48,7 @@ QVariant PathListModel::data(const QModelIndex& index, int role) const {
     }
 }
 
-bool PathListModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+auto PathListModel::setData(const QModelIndex& index, const QVariant& value, int role) -> bool {
     if (!index.isValid() || index.row() < 0 || index.row() >= pathItems.size())
         return false;
 
@@ -76,7 +76,7 @@ bool PathListModel::setData(const QModelIndex& index, const QVariant& value, int
     return false;
 }
 
-Qt::ItemFlags PathListModel::flags(const QModelIndex& index) const {
+auto PathListModel::flags(const QModelIndex& index) const -> Qt::ItemFlags {
     if (!index.isValid())
         return Qt::NoItemFlags;
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;

@@ -11,15 +11,15 @@ using potato = int;
 class Status : public QObject {
     Q_OBJECT
   public:
-    static Status& getInstance() {
+    static auto getInstance() -> Status& {
         static Status instance;
         return instance;
     }
 
     Status(Status const&) = delete;
-    Status& operator=(Status const&) = delete;
+    auto operator=(Status const&) -> Status& = delete;
 
-    QString getPathStatusById(int id) {
+    auto getPathStatusById(int id) -> QString {
         QReadLocker lock(&rwLock);
         return pathStatus.value(id, QString("path not found in path status"));
     }
@@ -29,14 +29,14 @@ class Status : public QObject {
         this->pathStatus = pathStatus;
     }
 
-    QMutex& getLockedPathIdMutex(int id) {
+    auto getLockedPathIdMutex(int id) -> QMutex& {
         QWriteLocker lock(&rwLock);
         if (!lockedPathId.contains(id))
             lockedPathId[id] = new QMutex();
         return *lockedPathId[id];
     }
 
-    bool allUnlockedPathId() {
+    auto allUnlockedPathId() -> bool {
         QReadLocker lock(&rwLock);
         for (auto* mutex : lockedPathId) {
             if (!mutex->try_lock())

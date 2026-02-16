@@ -25,7 +25,7 @@ enum PathTag {
     xdgConfig,
 };
 
-QString getAutoPath(const UtilGameSyncServer::GameMetadata gameMetadata,
-                    const UtilGameSyncServer::GamePath gamePath);
+auto getAutoPath(const UtilGameSyncServer::GameMetadata gameMetadata,
+                 const UtilGameSyncServer::GamePath gamePath) -> QString;
 
 } // namespace AutoPathFinder
