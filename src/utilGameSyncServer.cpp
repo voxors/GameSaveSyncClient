@@ -334,54 +334,103 @@ auto UtilGameSyncServer::postGameSavesForPathId(int pathId,
         hashArray.append(hashObj);
     }
     QJsonDocument hashDoc(hashArray);
+    QByteArray hashJson = hashDoc.toJson();
 
     QString tempDir = utilFileSystem::getUploadZipLocation();
     QString zipPath = QDir(tempDir).filePath(QString::number(pathId) + ".zip");
 
-    auto multiPart = std::make_unique<QHttpMultiPart>(QHttpMultiPart::FormDataType);
-
-    QHttpPart httpPartHashArray;
-    httpPartHashArray.setHeader(QNetworkRequest::ContentDispositionHeader,
-                                QVariant("form-data; name=\"file_hash\""));
-    httpPartHashArray.setBody(hashDoc.toJson(QJsonDocument::JsonFormat::Compact));
-
-    QHttpPart httpPartFile;
-    httpPartFile.setHeader(QNetworkRequest::ContentDispositionHeader,
-                           QVariant("form-data; name=\"file\""));
-    auto file = new QFile(zipPath);
-    if (!file->open(QIODevice::ReadOnly)) {
-        return std::unexpected{GameSaveSyncError::Error{.type = GameSaveSyncError::Other,
-                                                        .message = "Opening file failed"}};
+    QFile zipFile(zipPath);
+    if (!zipFile.open(QIODevice::ReadOnly)) {
+        return std::unexpected(GameSaveSyncError::Error{.type = GameSaveSyncError::Other,
+                                                        .message = "Failed to open zip file"});
     }
-    httpPartFile.setBodyDevice(file);
-    file->setParent(multiPart.get());
+    QFileInfo zipFileInfo(zipFile);
 
-    multiPart->append(httpPartHashArray);
-    multiPart->append(httpPartFile);
+    const qint64 chunkSize = 10L * 1024 * 1024;
+    qint64 totalSize = zipFileInfo.size();
+    int totalChunks = static_cast<int>((totalSize + chunkSize - 1) / chunkSize);
 
-    QString apiToken = config::getAPIToken().trimmed();
-    QNetworkRequest request(url);
-    request.setRawHeader("Authorization", "Bearer " + apiToken.toUtf8());
+    QString uuid;
+
     QNetworkAccessManager manager;
-    QNetworkReply* reply = manager.post(request, multiPart.get());
-    multiPart->setParent(reply);
+    for (int chunkIdx = 0; chunkIdx < totalChunks; ++chunkIdx) {
+        qint64 start = chunkIdx * chunkSize;
 
-    QEventLoop loop;
-    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
+        zipFile.seek(start);
+        QByteArray chunkBytes = zipFile.read(chunkSize);
 
-    bool success = (reply->error() == QNetworkReply::NoError);
-    if (!success) {
-        return std::unexpected{
-            GameSaveSyncError::Error{.type = GameSaveSyncError::Network,
-                                     .message = "Upload failed:" + reply->errorString()}};
+        auto* multipart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+        if (!uuid.isEmpty()) {
+            QHttpPart uuidPart;
+            uuidPart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                               QVariant(R"(form-data; name="uuid")"));
+            uuidPart.setBody(uuid.toUtf8());
+            multipart->append(uuidPart);
+        }
+
+        QHttpPart chunkNumberPart;
+        chunkNumberPart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                                  QVariant(R"(form-data; name="chunkNumber")"));
+        chunkNumberPart.setBody(QString::number(chunkIdx).toUtf8());
+        multipart->append(chunkNumberPart);
+
+        QHttpPart totalChunksPart;
+        totalChunksPart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                                  QVariant(R"(form-data; name="totalChunks")"));
+        totalChunksPart.setBody(QString::number(totalChunks).toUtf8());
+        multipart->append(totalChunksPart);
+
+        QHttpPart chunkPart;
+        chunkPart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                            QVariant(R"(form-data; name="chunk")"));
+        chunkPart.setHeader(QNetworkRequest::ContentTypeHeader,
+                            QVariant("application/octet-stream"));
+        chunkPart.setBody(chunkBytes);
+        multipart->append(chunkPart);
+
+        QHttpPart hashPart;
+        hashPart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                           QVariant(R"(form-data; name="file_hash")"));
+        hashPart.setBody(hashJson);
+        multipart->append(hashPart);
+
+        QString apiToken = config::getAPIToken().trimmed();
+        QNetworkRequest request(url);
+        request.setRawHeader("Authorization", "Bearer " + apiToken.toUtf8());
+
+        QEventLoop loop;
+        QNetworkReply* reply = manager.post(request, multipart);
+        multipart->setParent(reply);
+
+        QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+
+        if (reply->error() != QNetworkReply::NoError) {
+            reply->deleteLater();
+            return std::unexpected(GameSaveSyncError::Error{.type = GameSaveSyncError::Network,
+                                                            .message = reply->errorString()});
+        }
+
+        QByteArray response = reply->readAll();
+        reply->deleteLater();
+
+        QJsonDocument jsonResp = QJsonDocument::fromJson(response);
+        if (!jsonResp.isObject()) {
+            return std::unexpected(GameSaveSyncError::Error{.type = GameSaveSyncError::Other,
+                                                            .message = "Invalid JSON response"});
+        }
+        QString respUuid = jsonResp.object().value("uuid").toString();
+        if (respUuid.isEmpty()) {
+            return std::unexpected(GameSaveSyncError::Error{.type = GameSaveSyncError::Other,
+                                                            .message = "Missing uuid in response"});
+        }
+        uuid = respUuid;
     }
 
-    QString uuid = QString::fromUtf8(reply->readAll());
+    zipFile.close();
 
-    reply->deleteLater();
-
-    return std::expected<QString, GameSaveSyncError::Error>{uuid};
+    return uuid;
 }
 
 auto UtilGameSyncServer::getGameSavesForPathId(int pathId)
