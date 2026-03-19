@@ -17,16 +17,16 @@ class PathListModel : public QAbstractListModel {
 
     PathListModel(QObject* parent = nullptr);
 
-    [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-    [[nodiscard]] QVariant data(const QModelIndex& index,
-                                int role = Qt::DisplayRole) const override;
-    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
-    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& index) const override;
-    [[nodiscard]] const QList<PathItem>& items() const { return pathItems; }
+    [[nodiscard]] auto rowCount(const QModelIndex& parent = QModelIndex()) const -> int override;
+    [[nodiscard]] auto data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        -> QVariant override;
+    auto setData(const QModelIndex& index, const QVariant& value, int role) -> bool override;
+    [[nodiscard]] auto flags(const QModelIndex& index) const -> Qt::ItemFlags override;
+    [[nodiscard]] auto items() const -> const QList<PathItem>& { return pathItems; }
     void loadForGame(int gameId);
 
   private:
     QList<PathItem> pathItems;
 
-    [[nodiscard]] bool isPathValid(PathItem item) const;
+    [[nodiscard]] auto isPathValid(PathItem item) const -> bool;
 };

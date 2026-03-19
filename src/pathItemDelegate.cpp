@@ -8,8 +8,8 @@
 
 PathItemDelegate::PathItemDelegate(QObject* parent) : QStyledItemDelegate(parent) {}
 
-QWidget* PathItemDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&,
-                                        const QModelIndex& index) const {
+auto PathItemDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&,
+                                    const QModelIndex& index) const -> QWidget* {
     return new PathEditableRowWidget(index.data(PathListModel::IdRole).toInt(), parent);
 }
 

@@ -25,7 +25,7 @@ void BackgroundSyncWorker::start() {
         Qt::QueuedConnection);
 }
 
-std::expected<bool, GameSaveSyncError::Error> shouldUploadLocalFile(int pathId) {
+auto shouldUploadLocalFile(int pathId) -> std::expected<bool, GameSaveSyncError::Error> {
     QString configPath = config::getPath(pathId);
     if (!utilFileSystem::validatePath(configPath))
         return false;
@@ -79,10 +79,9 @@ std::expected<bool, GameSaveSyncError::Error> shouldUploadLocalFile(int pathId) 
     return true;
 }
 
-std::expected<void, GameSaveSyncError::Error>
-forEachGamePath(int gameId, std::function<std::expected<void, GameSaveSyncError::Error>(
-                                int pathId, const QString& configPath)>
-                                callback) {
+auto forEachGamePath(int gameId, std::function<std::expected<void, GameSaveSyncError::Error>(
+                                     int pathId, const QString& configPath)>
+                                     callback) -> std::expected<void, GameSaveSyncError::Error> {
     auto& server = UtilGameSyncServer::getInstance();
     auto maybePaths = server.getPathsByGameId(gameId);
     if (!maybePaths)
@@ -97,7 +96,7 @@ forEachGamePath(int gameId, std::function<std::expected<void, GameSaveSyncError:
     return std::expected<void, GameSaveSyncError::Error>{};
 }
 
-std::expected<void, GameSaveSyncError::Error> BackgroundSyncWorker::syncGameSaveToServer() {
+auto BackgroundSyncWorker::syncGameSaveToServer() -> std::expected<void, GameSaveSyncError::Error> {
     for (int gameId : config::returnAllIds()) {
         auto result = forEachGamePath(
             gameId,
@@ -122,7 +121,7 @@ std::expected<void, GameSaveSyncError::Error> BackgroundSyncWorker::syncGameSave
     return std::expected<void, GameSaveSyncError::Error>{};
 }
 
-std::expected<bool, GameSaveSyncError::Error> shouldDownloadToLocalFile(int pathId) {
+auto shouldDownloadToLocalFile(int pathId) -> std::expected<bool, GameSaveSyncError::Error> {
     QString configPath = config::getPath(pathId);
     if (!utilFileSystem::validatePath(configPath))
         return false;
@@ -179,7 +178,8 @@ std::expected<bool, GameSaveSyncError::Error> shouldDownloadToLocalFile(int path
     return true;
 }
 
-std::expected<void, GameSaveSyncError::Error> BackgroundSyncWorker::syncGameSaveFromServer() {
+auto BackgroundSyncWorker::syncGameSaveFromServer()
+    -> std::expected<void, GameSaveSyncError::Error> {
     for (int gameID : config::returnAllIds()) {
         std::expected<void, GameSaveSyncError::Error> result = forEachGamePath(
             gameID,
@@ -195,18 +195,7 @@ std::expected<void, GameSaveSyncError::Error> BackgroundSyncWorker::syncGameSave
                 std::expected<UtilGameSyncServer::GameSavesReturn, GameSaveSyncError::Error>
                     result = UtilGameSyncServer::getInstance().fetchLastSaveFromServer(pathId);
                 if (!result.has_value()) {
-                    switch (result.error().type) {
-
-                    case GameSaveSyncError::Network:
-                        return std::unexpected{result.error()};
-                        break;
-                    case GameSaveSyncError::NotFound:
-                    case GameSaveSyncError::Parsing:
-                    case GameSaveSyncError::Other:
-                        qWarning()
-                            << "Error while sync Game Save from Server : " + result.error().message;
-                        break;
-                    }
+                    return std::unexpected{result.error()};
                 }
                 return std::expected<void, GameSaveSyncError::Error>{};
             });
@@ -255,7 +244,7 @@ void BackgroundSyncWorker::stop() {
         backgroundTimer, [&]() -> void { this->backgroundTimer->stop(); }, Qt::QueuedConnection);
 }
 
-bool BackgroundSyncWorker::isRunning() {
+auto BackgroundSyncWorker::isRunning() -> bool {
     if (backgroundTimer != nullptr) {
         return backgroundTimer->isActive();
     } else {

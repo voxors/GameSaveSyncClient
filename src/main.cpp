@@ -11,7 +11,7 @@
 #include <QLocalSocket>
 #include <QThread>
 
-int main(int argc, char* argv[]) {
+auto main(int argc, char* argv[]) -> int {
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("GameSaveSync");
     QCoreApplication::setApplicationName("GameSaveSyncClient");

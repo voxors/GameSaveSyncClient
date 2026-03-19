@@ -9,30 +9,30 @@
 #include <miniz.h>
 
 namespace utilFileSystem {
-bool validatePath(const QString path) { return !getBasePath(path).isEmpty(); }
+auto validatePath(const QString path) -> bool { return !getBasePath(path).isEmpty(); }
 
-QString getUploadZipLocation() {
+auto getUploadZipLocation() -> QString {
     QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation) +
                       "/GameSaveSyncClient/upload/zip";
     QDir(tempDir).mkpath(".");
     return tempDir;
 }
 
-QString getDownloadZipLocation() {
+auto getDownloadZipLocation() -> QString {
     QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation) +
                       "/GameSaveSyncClient/download/zip";
     QDir(tempDir).mkpath(".");
     return tempDir;
 }
 
-QString getUnzippedLocation(int pathId) {
+auto getUnzippedLocation(int pathId) -> QString {
     QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation) +
                       "/GameSaveSyncClient/download/" + QString::number(pathId);
     QDir(tempDir).mkpath(".");
     return tempDir;
 }
 
-QString getBasePath(const QString path) {
+auto getBasePath(const QString path) -> QString {
     if (path.isEmpty()) {
         return {""};
     }
@@ -70,7 +70,8 @@ QString getBasePath(const QString path) {
     return basePath;
 }
 
-std::vector<FileHash> getHashFiles(const std::vector<QString>& filePaths, const QString& basePath) {
+auto getHashFiles(const std::vector<QString>& filePaths, const QString& basePath)
+    -> std::vector<FileHash> {
     std::vector<FileHash> hashes;
 
     for (const auto& filePath : filePaths) {
@@ -94,7 +95,7 @@ std::vector<FileHash> getHashFiles(const std::vector<QString>& filePaths, const 
     return hashes;
 }
 
-std::vector<QString> listFiles(const QString basePath, const QString pattern) {
+auto listFiles(const QString basePath, const QString pattern) -> std::vector<QString> {
     std::vector<QString> filePaths;
     QDirIterator it(basePath, QStringList() << pattern, QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext()) {
@@ -103,7 +104,7 @@ std::vector<QString> listFiles(const QString basePath, const QString pattern) {
     return filePaths;
 }
 
-QString extractPattern(const QString fullPath) {
+auto extractPattern(const QString fullPath) -> QString {
     QString basePath = getBasePath(fullPath);
     QString pattern = fullPath;
     if (!basePath.isEmpty())
@@ -115,7 +116,7 @@ QString extractPattern(const QString fullPath) {
     return pattern;
 }
 
-bool unzipZipAtDownload(const int pathId) {
+auto unzipZipAtDownload(const int pathId) -> bool {
     QString tempDir = getDownloadZipLocation();
     QString zipFile = QDir(tempDir).filePath(QString::number(pathId) + ".zip");
     QString zipDestination = getUnzippedLocation(pathId);
@@ -153,7 +154,7 @@ bool unzipZipAtDownload(const int pathId) {
     return true;
 }
 
-std::vector<FileHash> createZipForUpload(const int pathId, const QString path) {
+auto createZipForUpload(const int pathId, const QString path) -> std::vector<FileHash> {
     QString basePath = getBasePath(path);
     QString pattern = extractPattern(path);
 
@@ -204,7 +205,7 @@ std::vector<FileHash> createZipForUpload(const int pathId, const QString path) {
     return hashes;
 }
 
-bool writeFileToFileSystemAtDownload(const int pathId, const QByteArray data) {
+auto writeFileToFileSystemAtDownload(const int pathId, const QByteArray data) -> bool {
     QString tempDir = getDownloadZipLocation();
 
     QFile zipFile(QDir(tempDir).filePath(QString::number(pathId) + ".zip"));
@@ -216,7 +217,7 @@ bool writeFileToFileSystemAtDownload(const int pathId, const QByteArray data) {
     return true;
 }
 
-bool replaceFileAtDestination(const int pathId, const QString destination) {
+auto replaceFileAtDestination(const int pathId, const QString destination) -> bool {
     if (!QDir(getUnzippedLocation(pathId)).exists())
         return false;
 

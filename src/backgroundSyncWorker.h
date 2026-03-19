@@ -12,7 +12,7 @@ class BackgroundSyncWorker : public QObject {
 
   public:
     BackgroundSyncWorker(QObject* parent = nullptr);
-    bool isRunning();
+    auto isRunning() -> bool;
 
   public slots:
     void start();
@@ -26,6 +26,6 @@ class BackgroundSyncWorker : public QObject {
   private:
     QTimer* backgroundTimer;
     void validatePaths();
-    std::expected<void, GameSaveSyncError::Error> syncGameSaveToServer();
-    std::expected<void, GameSaveSyncError::Error> syncGameSaveFromServer();
+    auto syncGameSaveToServer() -> std::expected<void, GameSaveSyncError::Error>;
+    auto syncGameSaveFromServer() -> std::expected<void, GameSaveSyncError::Error>;
 };
