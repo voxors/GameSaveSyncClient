@@ -8,7 +8,7 @@ set(TARGET_NAME GameSaveSyncClient)
 
 set(QT_MAJOR_VERSION 6)
 
-project(${TARGET_NAME} VERSION 0.5 DESCRIPTION "GameSaveSyncClient")
+project(${TARGET_NAME} VERSION 0.6 DESCRIPTION "GameSaveSyncClient")
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

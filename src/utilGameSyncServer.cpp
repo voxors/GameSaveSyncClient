@@ -348,7 +348,7 @@ auto UtilGameSyncServer::postGameSavesForPathId(int pathId,
 
     const qint64 chunkSize = 10L * 1024 * 1024;
     qint64 totalSize = zipFileInfo.size();
-    int totalChunks = static_cast<int>((totalSize + chunkSize - 1) / chunkSize);
+    qint64 totalChunks = (totalSize + chunkSize - 1) / chunkSize;
 
     QString uuid;
 
