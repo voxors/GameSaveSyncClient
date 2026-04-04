@@ -377,7 +377,10 @@ auto getAutoPath(const UtilGameSyncServer::GameMetadata gameMetadata,
         }
     }
 
-    return newPath;
+    if (utilFileSystem::validatePath(newPath))
+        return newPath;
+    else
+        return gamePath.path;
 }
 
 } // namespace AutoPathFinder
