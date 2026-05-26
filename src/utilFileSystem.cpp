@@ -97,7 +97,8 @@ auto getHashFiles(const std::vector<QString>& filePaths, const QString& basePath
 
 auto listFiles(const QString basePath, const QString pattern) -> std::vector<QString> {
     std::vector<QString> filePaths;
-    QDirIterator it(basePath, QStringList() << pattern, QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator it(basePath, QStringList() << pattern, QDir::Files,
+                    QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while (it.hasNext()) {
         filePaths.push_back(it.next());
     }
