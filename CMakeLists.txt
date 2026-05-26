@@ -8,7 +8,7 @@ set(TARGET_NAME GameSaveSyncClient)
 
 set(QT_MAJOR_VERSION 6)
 
-project(${TARGET_NAME} VERSION 0.6 DESCRIPTION "GameSaveSyncClient")
+project(${TARGET_NAME} VERSION 0.6.1 DESCRIPTION "GameSaveSyncClient")
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -20,9 +20,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #See if the environment var is set
 if(DEFINED ENV{Qt${QT_MAJOR_VERSION}_HOME})
-    message(STATUS "Looking for Qt in: " $ENV{Qt${QT_MAJOR_VERSION}_HOME})
+  message(STATUS "Looking for Qt in: " $ENV{Qt${QT_MAJOR_VERSION}_HOME})
 else()
-    message(STATUS
+  message(STATUS
         "Qt${QT_MAJOR_VERSION}
         _HOME environment variable not set. Checking default paths.")
 endif()
@@ -32,7 +32,7 @@ find_package(Qt${QT_MAJOR_VERSION} COMPONENTS
     REQUIRED PATHS $ENV{Qt${QT_MAJOR_VERSION}_HOME})
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release"
+  set(CMAKE_BUILD_TYPE "Release"
       CACHE STRING "Build type (Debug, Release, RelWithDebInfo, MinSizeRel)"
       FORCE
   )
@@ -94,13 +94,13 @@ target_compile_definitions(${TARGET_NAME} PRIVATE
 )
 
 if(MSVC)
-    target_compile_options(${TARGET_NAME} PRIVATE
+  target_compile_options(${TARGET_NAME} PRIVATE
     $<$<CONFIG:Debug>:/Zi /Od>
     $<$<CONFIG:Release>:/O2>
     /W4 /WX /wd4458
   )
 else()
-    target_compile_options(${TARGET_NAME} PRIVATE
+  target_compile_options(${TARGET_NAME} PRIVATE
     $<$<CONFIG:Debug>:-g>
     $<$<CONFIG:Release>:-O3>
     -Wall -Wextra -pedantic -Werror
@@ -137,9 +137,9 @@ target_compile_options(miniz_static INTERFACE
 )
 
 if(MSVC)
-    target_compile_options(miniz_static PRIVATE /W0)
+  target_compile_options(miniz_static PRIVATE /W0)
 else()
-    target_compile_options(miniz_static PRIVATE -w)
+  target_compile_options(miniz_static PRIVATE -w)
 endif()
 
 target_link_libraries(${TARGET_NAME}
